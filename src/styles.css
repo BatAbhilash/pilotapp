@@ -1,1 +1,44 @@
 /* You can add global styles to this file, and also import other style files */
+@import '~bootstrap/dist/css/bootstrap.min.css';
+
+.header__logo {
+    width: 165px;
+    height: 77px;
+    position: relative;
+    overflow: hidden;
+    background: transparent;
+}
+
+    .header__logo svg#logo-bg-svg {
+        width: 100%;
+        height: 100%;
+        display: block;
+        clip-path: polygon(0 0,100% 0,100% calc(100% - 15px),0 100%);
+    }
+    .header__logo a {
+        display: block;
+        width: 100%;
+        height: 100%;
+        position: absolute;
+        top: 0;
+        left: 0;
+        z-index: 2;
+    }
+    .header__logo img {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate3d(-50%,-50%,0);
+        display: block;
+        width: 115px;
+        height: auto;
+    }
+
+.navbar-inverse {
+    background-color: #fff !important;
+    border-color: #fff !important;
+}
+
+/*.body {
+    background-color: #fafafc !important;
+}*/

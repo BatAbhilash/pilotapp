@@ -1,20 +1,162 @@
-<!--The content below is only a placeholder and can be replaced.-->
-<div style="text-align:center">
-  <h1>
-    Welcome to {{ title }}!
-  </h1>
-  <img width="300" alt="Angular Logo" src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNTAgMjUwIj4KICAgIDxwYXRoIGZpbGw9IiNERDAwMzEiIGQ9Ik0xMjUgMzBMMzEuOSA2My4ybDE0LjIgMTIzLjFMMTI1IDIzMGw3OC45LTQzLjcgMTQuMi0xMjMuMXoiIC8+CiAgICA8cGF0aCBmaWxsPSIjQzMwMDJGIiBkPSJNMTI1IDMwdjIyLjItLjFWMjMwbDc4LjktNDMuNyAxNC4yLTEyMy4xTDEyNSAzMHoiIC8+CiAgICA8cGF0aCAgZmlsbD0iI0ZGRkZGRiIgZD0iTTEyNSA1Mi4xTDY2LjggMTgyLjZoMjEuN2wxMS43LTI5LjJoNDkuNGwxMS43IDI5LjJIMTgzTDEyNSA1Mi4xem0xNyA4My4zaC0zNGwxNy00MC45IDE3IDQwLjl6IiAvPgogIDwvc3ZnPg==">
-</div>
-<h2>Here are some links to help you start: </h2>
-<ul>
-  <li>
-    <h2><a target="_blank" rel="noopener" href="https://angular.io/tutorial">Tour of Heroes</a></h2>
-  </li>
-  <li>
-    <h2><a target="_blank" rel="noopener" href="https://github.com/angular/angular-cli/wiki">CLI Documentation</a></h2>
-  </li>
-  <li>
-    <h2><a target="_blank" rel="noopener" href="https://blog.angular.io/">Angular blog</a></h2>
-  </li>
-</ul>
+<form *ngIf="!flag" (ngSubmit)="open(myForm)" #myForm="ngForm">
+<div class="row" style="margin-top: 7%">
+  <input type="hidden" name="response" id="response" [(ngModel)]="response">
+  <div class="col-md-4">
+    <h3>Locations</h3>
+    
+      <div class="form-group">
+        <div>
+          
+          <ng-multiselect-dropdown
+          name="selectedItems"
+          id="selectedItems"
+          [placeholder]="'Select a location'"
+          [data]="location"
+          [(ngModel)]="selectedLocation"
+          [settings]="dropdownLocationSettings"
+          (onSelect)="onLocationSelect($event)"
+          (onDeSelect)="onDeselct($event,'Location')"
+          >
+      </ng-multiselect-dropdown>
+        </div>
+      </div>
+    
+  </div>
+  <div class="col-md-4">
+    <h3>Persons</h3>
+      <div class="form-group">
+        <div>
+          
+            <ng-multiselect-dropdown
+            name="selectedPersons"
+            id="selectedPersons"
+            [placeholder]="'Select a Person'"
+            [data]="personsByLocation"
+            [(ngModel)]="selectedPersons"
+            [settings]="dropdownPersonSettings"
+            (onSelect)="onPersonSelect($event)"
+            (onDeSelect)="onDeselct($event,'Person')"
+            >
+        </ng-multiselect-dropdown>
+        </div>
+      </div>
+    
+  </div>
+  <div class="col-md-4" id="jobDiv">
+    <h3>Jobs</h3>
 
+    <div class="form-group">
+      <div>
+          <ng-multiselect-dropdown
+          name="selectedJobs"
+          id="selectedJobs"
+          [placeholder]="'Select a Job'"
+          [data]="job"
+          [(ngModel)]="selectedJobs"
+          [settings]="dropdownJobSettings"
+          (onSelect)="onJobSelect($event)"
+          (onDeSelect)="onDeselct($event,'Job')"
+          >
+      </ng-multiselect-dropdown>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="row" style="margin-top: 4%">
+  <div class="col-md-4">
+    <h3>Roles</h3>
+    <div class="form-group">
+      <div>
+          <ng-multiselect-dropdown
+          name="selectedRoles"
+          id="selectedRoles"
+          [placeholder]="'Select a Role'"
+          [data]="roles"
+          [(ngModel)]="selectedRoles"
+          [settings]="dropdownRoleSettings"
+          (onSelect)="onRoleSelect($event)"
+          (onDeSelect)="onDeselct($event,'Role')"
+          >
+      </ng-multiselect-dropdown>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-md-4">
+    <h3>Backups</h3>
+    <div class="form-group">
+      <div>
+          <ng-multiselect-dropdown
+          name="selectedBackups"
+          id="selectedBackups"
+          [placeholder]="'Select a Backup'"
+          [data]="backup"
+          [(ngModel)]="selectedBackups"
+          [settings]="dropdownBackupSettings"
+          (onSelect)="onBackupSelect($event)"
+          (onDeSelect)="onDeselct($event,'backup')"
+          >
+        </ng-multiselect-dropdown>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-md-4" style="margin-top:10%;">
+    <div class="form-group">
+      <div class="col-md-10" style="margin-left:31%">
+        <button type="submit" class="btn btn-success" id="save">Save</button>
+      </div>
+
+    </div>
+  </div>
+</div>
+</form>
+
+<div *ngIf="flag">
+<table class="table table-striped" [mfData]="tableContent" #mf="mfDataTable" [mfRowsOnPage]="5">
+  <thead>
+  <tr>
+      <th style="width: 20%">
+          <mfDefaultSorter by="location">Location</mfDefaultSorter>
+      </th>
+      <th style="width: 20%">
+          <mfDefaultSorter by="person">Person</mfDefaultSorter>
+      </th>
+      <th style="width: 20%">
+          <mfDefaultSorter by="job">Job</mfDefaultSorter>
+      </th>
+      <th style="width: 20%">
+          <mfDefaultSorter by="role">Role</mfDefaultSorter>
+      </th>
+      <th style="width: 20%">
+        <mfDefaultSorter by="backup">Backup</mfDefaultSorter>
+    </th>
+  </tr>
+  </thead>
+  <tbody>
+  <tr *ngFor="let item of mf.data">
+      <td>{{item.Location}}</td>
+      <td>{{item.Person}}</td>
+      <td>{{item.Job}}</td>
+      <td>{{item.Role}}</td>
+      <td>{{item.Backup}}</td>
+  </tr>
+  </tbody>
+  <tfoot>
+  <tr>
+      <td colspan="4">
+          <mfBootstrapPaginator [rowsOnPageSet]="[5,10,25]"></mfBootstrapPaginator>
+      </td>
+  </tr>
+  </tfoot>
+</table>
+
+<div class="col-md-4" style="margin-top:10%;">
+  <div class="form-group">
+    <div class="col-md-10" style="margin-left:31%">
+      <button type="button" class="btn btn-success" id="save1" (click)="flag = false">Go Back</button>
+    </div>
+  </div>
+</div>
+</div>
