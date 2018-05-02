@@ -5,6 +5,9 @@ import { AppComponent } from './app.component';
 import { FormsModule } from '@angular/forms';
 import {NgbModule} from '@ng-bootstrap/ng-bootstrap';
 import {DataTableModule} from 'angular2-datatable';
+import {BrowserAnimationsModule} from '@angular/platform-browser/animations';
+import {ToasterModule, ToasterService} from 'angular5-toaster';
+import { Ng2SmartTableModule } from 'ng2-smart-table';
 
 @NgModule({
   declarations: [
@@ -15,7 +18,10 @@ import {DataTableModule} from 'angular2-datatable';
     FormsModule,
     NgbModule.forRoot(),
     NgMultiSelectDropDownModule.forRoot(),
-    DataTableModule
+    DataTableModule,
+    BrowserAnimationsModule,
+    Ng2SmartTableModule,
+    ToasterModule
   ],
   providers: [],
   bootstrap: [AppComponent]

@@ -25,10 +25,12 @@
     "@types/lodash": "^4.14.108",
     "angular-bootstrap-multiselect": "^1.1.11",
     "angular2-datatable": "^0.6.0",
+    "angular5-toaster": "^1.0.2",
     "bootstrap": "^4.1.0",
     "core-js": "^2.4.1",
     "lodash": "^4.17.10",
     "ng-multiselect-dropdown": "^0.1.6",
+    "ng2-smart-table": "^1.2.2",
     "rxjs": "^5.5.6",
     "zone.js": "^0.8.19"
   },

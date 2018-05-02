@@ -1,5 +1,8 @@
 import { Component, OnInit } from '@angular/core';
 import { NgForm } from '@angular/forms';
+import { NgbModal, ModalDismissReasons } from '@ng-bootstrap/ng-bootstrap';
+import { ToasterModule, ToasterService } from 'angular5-toaster';
+import { Ng2SmartTableModule, LocalDataSource } from 'ng2-smart-table';
 import * as _ from 'lodash';
 
 // import '../assets/bootstrap-multiselect.js';
@@ -10,6 +13,7 @@ import * as _ from 'lodash';
   styleUrls: ['./app.component.css']
 })
 export class AppComponent implements OnInit {
+  source: LocalDataSource;
   title = 'app';
   flag = false;
   tableContent = [];
@@ -20,26 +24,63 @@ export class AppComponent implements OnInit {
   dropdownJobSettings = {};
   dropdownRoleSettings = {};
   dropdownBackupSettings = {};
+  dropdownHeadSettings = {};
   location = [];
+  headData = [];
   persons = [];
   job = [];
   roles = [];
   backup = [];
   personsByLocation = [];
   selectedPersons = [];
+  selectedHead = [];
   selectedJobs = [];
   selectedRoles = [];
   selectedBackups = [];
   response = {
     Location: {},
+    Head: {},
     Person: {},
-    Job: {},
+    Job: [],
     Role: [],
     Backup: []
   };
-
-  constructor() {
-
+  closeResult: string;
+  modalData: {};
+  settings = {
+    selectMode: 'multi',
+    actions: {
+      delete: false,
+      add: false,
+      edit: false,
+      select: true,
+    },
+    columns: {
+      location: {
+        title: 'Location'
+      },
+      name: {
+        title: 'Person'
+      },
+      jobName: {
+        title: 'Job'
+      },
+      roleName: {
+        title: 'Role'
+      },
+      backup: {
+        title: 'Backup'
+      }
+    },
+    defaultStyle: false,
+    attr: {
+      class: 'table table-bordered'
+    }
+  };
+  private toasterService: ToasterService;
+  constructor(private modalService: NgbModal, toasterService: ToasterService) {
+    this.toasterService = toasterService;
+    this.source = new LocalDataSource(this.tableContent);
   }
 
   ngOnInit() {
@@ -58,20 +99,40 @@ export class AppComponent implements OnInit {
       itemsShowLimit: 3,
       allowSearchFilter: true,
       closeDropDownOnSelection: true,
-      enableCheckAll : false
+      enableCheckAll: false
     };
 
+    this.headData = [
+      { headId: 1, Name: 'Team Leader', Id: 3 },
+      { headId: 2, Name: 'Manger', Id: 4 },
+      { headId: 3, Name: 'Analyst', Id: 2 },
+      { headId: 4, Name: 'Developer', Id: 1 },
+    ];
+    this.dropdownHeadSettings = {
+      singleSelection: true,
+      idField: 'headId',
+      textField: 'Name',
+      selectAllText: 'Select All',
+      unSelectAllText: 'UnSelect All',
+      itemsShowLimit: 3,
+      allowSearchFilter: true,
+      closeDropDownOnSelection: true,
+      enableCheckAll: false
+    };
+
+
+
     this.persons = [
-      { LocationId: 1, LocationName: 'Sydney', Id: 1, FirstName: 'Matt', LastName: 'Demon' },
-      { LocationId: 2, LocationName: 'New York', Id: 2, FirstName: 'Jimmy', LastName: 'Kimbell', HasJobsAssociated: true },
-      { LocationId: 2, LocationName: 'New York', Id: 3, FirstName: 'Matt1', LastName: 'Shaw', HasJobsAssociated: true },
-      { LocationId: 3, LocationName: 'Seattle', Id: 4, FirstName: 'Richard', LastName: 'Benoff', HasJobsAssociated: true },
-      { LocationId: 3, LocationName: 'Seattle', Id: 23, FirstName: 'Tom', LastName: 'Hanks' },
-      { LocationId: 3, LocationName: 'Seattle', Id: 79, FirstName: 'Arnold', LastName: 'Demon' },
-      { LocationId: 4, LocationName: 'Dallas', Id: 31, FirstName: 'Mathew', LastName: 'Zest', HasJobsAssociated: true },
-      { LocationId: 4, LocationName: 'Dallas', Id: 78, FirstName: 'Zee', LastName: 'Dawn' },
-      { LocationId: 4, LocationName: 'Dallas', Id: 98, FirstName: 'Tim', LastName: 'Crew' },
-      { LocationId: 4, LocationName: 'Dallas', Id: 49, FirstName: 'John', LastName: 'Danny', HasJobsAssociated: true },
+      { headId: 1, Id: 1, FirstName: 'Matt', LastName: 'Demon' },
+      { headId: 2, Id: 2, FirstName: 'Jimmy', LastName: 'Kimbell', HasJobsAssociated: true },
+      { headId: 2, Id: 3, FirstName: 'Matt1', LastName: 'Shaw', HasJobsAssociated: true },
+      { headId: 3, Id: 1, FirstName: 'Richard', LastName: 'Benoff', HasJobsAssociated: true },
+      { headId: 3, Id: 2, FirstName: 'Tom', LastName: 'Hanks' },
+      { headId: 3, Id: 3, FirstName: 'Arnold', LastName: 'Demon' },
+      { headId: 4, Id: 1, FirstName: 'Mathew', LastName: 'Zest', HasJobsAssociated: true },
+      { headId: 4, Id: 2, FirstName: 'Zee', LastName: 'Dawn' },
+      { headId: 4, Id: 3, FirstName: 'Tim', LastName: 'Crew' },
+      { headId: 4, Id: 1, FirstName: 'John', LastName: 'Danny', HasJobsAssociated: true },
     ];
     this.dropdownPersonSettings = {
       singleSelection: true,
@@ -82,17 +143,23 @@ export class AppComponent implements OnInit {
       itemsShowLimit: 3,
       allowSearchFilter: true,
       closeDropDownOnSelection: true,
-      enableCheckAll : false
+      enableCheckAll: false
     };
 
+
+
     this.job = [
-      { JobId: 1, JobName: 'job 1', PersonId: 1, RoleIds: [1] },
-      { JobId: 2, JobName: 'job 2', PersonId: 3, RoleIds: [1, 2] },
-      { JobId: 3, JobName: 'job 3', PersonId: 4, RoleIds: [3] },
+      { JobId: 1, JobName: 'job 1', PersonId: 2, RoleId: [4, 1] },
+      { JobId: 2, JobName: 'job 2', PersonId: 3, RoleId: [4, 3] },
+      { JobId: 3, JobName: 'job 3', PersonId: 4, RoleId: [1, 2] },
+      { JobId: 5, JobName: 'job 5', PersonId: 7, RoleId: [4] },
+      { JobId: 6, JobName: 'job 6', PersonId: 10, RoleId: [3] },
+      { JobId: 7, JobName: 'job 7', PersonId: 1, RoleId: [1] },
+      { JobId: 8, JobName: 'job 8', PersonId: 1, RoleId: [2] },
     ];
 
     this.dropdownJobSettings = {
-      singleSelection: true,
+      singleSelection: false,
       idField: 'JobId',
       textField: 'JobName',
       selectAllText: 'Select All',
@@ -100,12 +167,12 @@ export class AppComponent implements OnInit {
       itemsShowLimit: 3,
       allowSearchFilter: true,
       closeDropDownOnSelection: true,
-      enableCheckAll : false
+      enableCheckAll: false
     };
 
     this.roles = [
       { RoleId: 1, RoleName: 'Role1 for job 1', backupsIds: [2] },
-      { RoleId: 2, RoleName: 'Role1 for job 2', backupsIds: [1, 2] },
+      { RoleId: 2, RoleName: 'Role1 for job 2', backupsIds: [1] },
       { RoleId: 3, RoleName: 'Role2 for job 2', backupsIds: [2] },
       { RoleId: 4, RoleName: 'Role1 for job 3', backupsIds: [1] },
     ];
@@ -118,7 +185,7 @@ export class AppComponent implements OnInit {
       unSelectAllText: 'UnSelect All',
       itemsShowLimit: 3,
       allowSearchFilter: true,
-      enableCheckAll : false
+      enableCheckAll: false
     };
 
     this.backup = [
@@ -134,15 +201,27 @@ export class AppComponent implements OnInit {
       unSelectAllText: 'UnSelect All',
       itemsShowLimit: 3,
       allowSearchFilter: true,
-      enableCheckAll : false
+      enableCheckAll: false
     };
+
   }
 
   onLocationSelect(item: any) {
     const self = this;
     self.response.Location = item;
+    this.selectedHead = _.filter(self.headData, function (obj) {
+      if (obj.Id === item.LocationId) {
+        return obj;
+      }
+    });
+    this.onHeadSelect(this.selectedHead[0]);
+  }
+
+  onHeadSelect(item: any) {
+    const self = this;
+    self.response.Head = item;
     this.personsByLocation = _.filter(self.persons, function (obj) {
-      if (obj.LocationId === item.LocationId) {
+      if (obj.headId === item.headId) {
         return obj;
       }
     });
@@ -151,37 +230,29 @@ export class AppComponent implements OnInit {
   onPersonSelect(item: any) {
     const self = this;
     self.response.Person = item;
-    this.selectedJobs = _.filter(self.job, function (obj) {
+    self.selectedJobs = _.filter(self.job, function (obj) {
       if (obj.PersonId === item.Id) {
+        console.log(obj);
+        self.response.Job.push(obj);
         return obj;
       }
     });
-    if (this.selectedJobs.length > 0) {
-      this.onJobSelect(this.selectedJobs[0]);
-    }
-    console.log(this.selectedJobs);
+    console.log(self.selectedJobs);
+    console.log(self.response);
   }
 
   onJobSelect(item: any) {
     const self = this;
-    self.response.Job = item;
-    const selectedObj = _.find(self.job, function (obj) {
-      return obj.JobId === item.JobId;
-    });
-    this.selectedRoles = _.filter(self.roles, function (obj) {
-      if (_.includes(selectedObj.RoleIds, obj.RoleId)) {
-        self.response.Role.push(obj.RoleId);
-        return obj;
-      }
-    });
-    if (this.selectedRoles.length > 0) {
-      this.onRoleSelect(this.selectedRoles[0]);
-    }
-    console.log(this.selectedRoles);
+    self.response.Job.push(item);
+    console.log(self.response);
   }
 
   onRoleSelect(item: any) {
     const self = this;
+
+    self.selectedJobs = [];
+    self.response.Job = [];
+
     self.response.Role.push(item.RoleId);
     const selectedObj = _.find(self.roles, function (obj) {
       return obj.RoleId === item.RoleId;
@@ -192,38 +263,41 @@ export class AppComponent implements OnInit {
         return obj;
       }
     });
-    console.log(this.selectedRoles);
   }
+
+  onBackupSelect(item: any) {
+    this.response.Backup.push(item.id);
+    console.log(item);
+  }
+
 
   onDeselct(item: any, category: any) {
     const self = this;
     if (category === 'Location') {
-      self.response = {
-        Location: {},
-        Person: {},
-        Job: {},
-        Role: [],
-        Backup: []
-      };
-      this.selectedLocation = [];
-      self.selectedPersons = [];
+      self.clearData();
+    } else if (category === 'head') {
+      self.response.Head = {};
+      self.response.Person = {};
+      self.response.Job = [];
+      self.response.Role = [];
+      self.response.Backup = [];
       self.selectedJobs = [];
       self.selectedRoles = [];
       self.selectedBackups = [];
+      self.selectedHead = [];
     } else if (category === 'Person') {
       self.response.Person = {};
-      self.response.Job = {};
+      self.response.Job = [];
       self.response.Role = [];
       self.response.Backup = [];
       self.selectedJobs = [];
       self.selectedRoles = [];
       self.selectedBackups = [];
     } else if (category === 'Job') {
-      self.response.Job = {};
-      self.response.Role = [];
-      self.response.Backup = [];
-      self.selectedRoles = [];
-      self.selectedBackups = [];
+
+      self.response.Job = _.filter(self.response.Job, function (obj) {
+        return obj.JobId !== item.JobId;
+      });
     } else if (category === 'Role') {
 
       if (self.response.Role.length > 0) {
@@ -248,43 +322,79 @@ export class AppComponent implements OnInit {
     console.log(item);
     console.log(category);
   }
-  onBackupSelect(item: any) {
-    this.response.Backup.push(item.id);
-    console.log(item);
-  }
 
-  onSelectAll(items: any) {
-    console.log(items);
-  }
-
-  open(content) {
+  addRow() {
+    this.toasterService.pop('success', 'Success!', 'Record Added Successfully!');
     const self = this;
     this.flag = true;
-
     self.response.Role = _.uniq(self.response.Role);
     const roleNames = [];
-    _.each(self.roles, function(o) {
-      if (_.includes(self.response.Role, o.RoleId)) {
-        roleNames.push(o.RoleName);
+    const tableData = {};
+    tableData['location'] = self.response.Location['LocationName'];
+    tableData['name'] = self.response.Person['FirstName'];
+    tableData['head'] = self.response.Head['Name'];
+    tableData['roleName'] = 'NA';
+    tableData['jobName'] = 'NA';
+    tableData['backup'] = 'NA';
+    _.forEach(self.roles, function (obj) {
+      if (_.includes(self.response.Role, obj.RoleId)) {
+        roleNames.push(obj.RoleName);
+        let o = _.cloneDeep(tableData);
+        o['roleName'] = obj.RoleName;
+        self.tableContent.push(o);
       }
     });
 
-    self.response.Backup = _.uniq(self.response.Backup);
-    const backupNames = [];
-     _.each(self.backup, function(o) {
-      if (_.includes(self.response.Backup, o.id)) {
-        backupNames.push(o.Email);
-      }
-    });
-    console.log(backupNames);
-    this.tableContent[0] = {
-      Location: self.response.Location['LocationName'],
-      Person: self.response.Person['FirstName'],
-      Job: self.response.Job['JobName'],
-      Role: roleNames.join(', '),
-      Backup: backupNames.join(', '),
-    };
-    console.log(content.value);
+    // self.response.Backup = _.uniq(self.response.Backup);
+    // const backupNames = [];
+    //  _.each(self.backup, function(o) {
+    //   if (_.includes(self.response.Backup, o.id)) {
+    //     backupNames.push(o.Email);
+    //   }
+    // });
+    if (self.response.Job.length > 0) {
+      _.forEach(self.response.Job, function (obj) {
+        let o = _.cloneDeep(tableData);
+        o['jobName'] = obj.JobName;
+        self.tableContent.push(o);
+      });
+    }
+    this.source = new LocalDataSource(this.tableContent);
+    this.source.refresh();
+    this.clearData();
   }
 
+  clearData() {
+    const self = this;
+    self.response = {
+      Location: {},
+      Head: {},
+      Person: {},
+      Job: [],
+      Role: [],
+      Backup: []
+    };
+    self.selectedHead = [];
+    self.selectedLocation = [];
+    self.personsByLocation = [];
+    self.selectedPersons = [];
+    self.selectedJobs = [];
+    self.selectedRoles = [];
+    self.selectedBackups = [];
+  }
+
+  deleteRow(index) {
+    this.toasterService.pop('warning', 'Success!', 'Record Deleted Successfully!');
+    this.tableContent.splice(index, 1);
+  }
+
+  onUserRowSelect(event) {
+    console.log(event);
+  }
+
+  resetGrid() {
+    this.tableContent = [];
+    this.source = new LocalDataSource(this.tableContent);
+    this.source.refresh();
+  }
 }

@@ -42,3 +42,10 @@
 /*.body {
     background-color: #fafafc !important;
 }*/
+.dropdown-list{        
+display: inline-block !important;
+position: relative !important;
+z-index: 0 !important; 
+}
+
+.table>tfoot>tr>td{border: 1px solid #e9ebec;}
