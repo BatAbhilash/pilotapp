@@ -344,6 +344,12 @@ export class AppComponent implements OnInit {
       if (_.includes(self.response.Role, obj.RoleId)) {
         roleNames.push(obj.RoleName);
         let o = _.cloneDeep(tableData);
+        _.each(self.backup, function(bo) {
+          if (obj.backupsIds[0] === bo.id) {
+            o['backup'] = bo.FirstName;
+          }
+        });
+
         o['roleName'] = obj.RoleName;
         self.tableContent.push(o);
       }
@@ -382,7 +388,7 @@ export class AppComponent implements OnInit {
 
   deleteRow() {
     const self = this;
-    self.tableContent = _.difference(self.tableContent, self.selectedRows);
+    _.pullAll(self.tableContent, self.selectedRows);
     self.source = new LocalDataSource(self.tableContent);
     self.source.refresh();
     this.selectedRows = [];
