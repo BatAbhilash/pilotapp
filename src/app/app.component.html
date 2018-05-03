@@ -1,3 +1,4 @@
+<div class="container body-content">
 <toaster-container></toaster-container>
 <form (ngSubmit)="open(myForm)" #myForm="ngForm">
   <div class="row" style="margin-top: 7%">
@@ -77,18 +78,13 @@
       </div>
     </div>
 
-    <div class="col-md-4" style="margin-top:10%;">
-      <div class="form-group">
-        <div class="col-md-10" style="margin-left:31%">
+    <div class="col-md-4">
           <button type="button" class="btn btn-success" id="save" (click)="addRow()">Add Mapping</button>
-        </div>
-
-      </div>
     </div>
   </div>
 </form>
 
-<div *ngIf="tableContent.length > 0">
+<div style="margin-top:10px" *ngIf="tableContent.length > 0">
   <div class="row">
     <div class="col-lg-12 col-md-12">
       <ng2-smart-table [settings]="settings" [source]="source" (userRowSelect)="onUserRowSelect($event)" ></ng2-smart-table>
@@ -99,8 +95,14 @@
     <div class="col-lg-12 col-md-12">
 
       <button type="button" class="btn btn-success" id="submit">Submit</button>
-      <button type="button" class="btn btn-danger" id="delete" (click)="addRow()">Delete</button>
+      <button type="button" class="btn btn-danger" id="delete" [disabled]="selectedRows.length == 0" (click)="deleteRow()">Delete</button>
       <button type="button" class="btn btn-info" id="cleargrid" (click)="resetGrid()">Clear</button>
 
     </div>
   </div>
+</div>
+  <hr />
+  <footer>
+    <p>&copy; {{today | date}} - Visual Enterprise Architechture</p>
+  </footer>
+

@@ -14,6 +14,8 @@ import * as _ from 'lodash';
 })
 export class AppComponent implements OnInit {
   source: LocalDataSource;
+  today = Date.now();
+  selectedRows = [];
   title = 'app';
   flag = false;
   tableContent = [];
@@ -336,6 +338,8 @@ export class AppComponent implements OnInit {
     tableData['roleName'] = 'NA';
     tableData['jobName'] = 'NA';
     tableData['backup'] = 'NA';
+
+    if (self.response.Job.length === 0) {
     _.forEach(self.roles, function (obj) {
       if (_.includes(self.response.Role, obj.RoleId)) {
         roleNames.push(obj.RoleName);
@@ -345,14 +349,7 @@ export class AppComponent implements OnInit {
       }
     });
 
-    // self.response.Backup = _.uniq(self.response.Backup);
-    // const backupNames = [];
-    //  _.each(self.backup, function(o) {
-    //   if (_.includes(self.response.Backup, o.id)) {
-    //     backupNames.push(o.Email);
-    //   }
-    // });
-    if (self.response.Job.length > 0) {
+  } else if (self.response.Job.length > 0) {
       _.forEach(self.response.Job, function (obj) {
         let o = _.cloneDeep(tableData);
         o['jobName'] = obj.JobName;
@@ -383,12 +380,17 @@ export class AppComponent implements OnInit {
     self.selectedBackups = [];
   }
 
-  deleteRow(index) {
-    this.toasterService.pop('warning', 'Success!', 'Record Deleted Successfully!');
-    this.tableContent.splice(index, 1);
+  deleteRow() {
+    const self = this;
+    self.tableContent = _.difference(self.tableContent, self.selectedRows);
+    self.source = new LocalDataSource(self.tableContent);
+    self.source.refresh();
+    this.selectedRows = [];
+    this.toasterService.pop('warning', 'Success!', 'Records Deleted Successfully!');
   }
 
   onUserRowSelect(event) {
+    this.selectedRows = event.selected;
     console.log(event);
   }
 
