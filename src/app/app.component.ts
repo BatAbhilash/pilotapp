@@ -1,10 +1,12 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, TemplateRef } from '@angular/core';
 import { NgForm } from '@angular/forms';
 import { NgbModal, ModalDismissReasons } from '@ng-bootstrap/ng-bootstrap';
 import { ToasterModule, ToasterService } from 'angular5-toaster';
 import { Ng2SmartTableModule, LocalDataSource } from 'ng2-smart-table';
 import * as _ from 'lodash';
-
+import { CslService } from '../app/csl.service';
+import { BsModalService } from 'ngx-bootstrap/modal';
+import { BsModalRef } from 'ngx-bootstrap/modal/bs-modal-ref.service';
 // import '../assets/bootstrap-multiselect.js';
 
 @Component({
@@ -13,6 +15,7 @@ import * as _ from 'lodash';
   styleUrls: ['./app.component.css']
 })
 export class AppComponent implements OnInit {
+  modalRef: BsModalRef;
   source: LocalDataSource;
   today = Date.now();
   selectedRows = [];
@@ -80,17 +83,22 @@ export class AppComponent implements OnInit {
     }
   };
   private toasterService: ToasterService;
-  constructor(private modalService: NgbModal, toasterService: ToasterService) {
+  constructor(toasterService: ToasterService, cslService: CslService, private modalService: BsModalService) {
     this.toasterService = toasterService;
     this.source = new LocalDataSource(this.tableContent);
+    // locations, leads
+    // cslService.getCSLData('data').subscribe(data => console.log(data));
+  }
+  openModal(template: TemplateRef<any>) {
+    this.modalRef = this.modalService.show(template);
   }
 
   ngOnInit() {
     this.location = [
-      { LocationId: 1, LocationName: 'Sydney' },
-      { LocationId: 2, LocationName: 'New York' },
-      { LocationId: 3, LocationName: 'Seattle' },
-      { LocationId: 4, LocationName: 'Dallas' }
+      { LocationId: 1, LocationName: 'Liverpool' },
+      { LocationId: 2, LocationName: 'Budapest' },
+      { LocationId: 3, LocationName: 'Cleveland' },
+      { LocationId: 4, LocationName: 'Marburg' }
     ];
     this.dropdownLocationSettings = {
       singleSelection: true,
@@ -105,10 +113,10 @@ export class AppComponent implements OnInit {
     };
 
     this.headData = [
-      { headId: 1, Name: 'Team Leader', Id: 3 },
-      { headId: 2, Name: 'Manger', Id: 4 },
-      { headId: 3, Name: 'Analyst', Id: 2 },
-      { headId: 4, Name: 'Developer', Id: 1 },
+      { headId: 1, Name: 'Adrian Aeschlimann', Id: 3 },
+      { headId: 2, Name: 'Barbara Moser', Id: 4 },
+      { headId: 3, Name: 'Juerg Hofmaenner', Id: 2 },
+      { headId: 4, Name: 'Katharine von der Fecht', Id: 1 },
     ];
     this.dropdownHeadSettings = {
       singleSelection: true,
@@ -122,19 +130,17 @@ export class AppComponent implements OnInit {
       enableCheckAll: false
     };
 
-
-
     this.persons = [
-      { headId: 1, Id: 1, FirstName: 'Matt', LastName: 'Demon' },
-      { headId: 2, Id: 2, FirstName: 'Jimmy', LastName: 'Kimbell', HasJobsAssociated: true },
-      { headId: 2, Id: 3, FirstName: 'Matt1', LastName: 'Shaw', HasJobsAssociated: true },
-      { headId: 3, Id: 1, FirstName: 'Richard', LastName: 'Benoff', HasJobsAssociated: true },
-      { headId: 3, Id: 2, FirstName: 'Tom', LastName: 'Hanks' },
-      { headId: 3, Id: 3, FirstName: 'Arnold', LastName: 'Demon' },
-      { headId: 4, Id: 1, FirstName: 'Mathew', LastName: 'Zest', HasJobsAssociated: true },
-      { headId: 4, Id: 2, FirstName: 'Zee', LastName: 'Dawn' },
-      { headId: 4, Id: 3, FirstName: 'Tim', LastName: 'Crew' },
-      { headId: 4, Id: 1, FirstName: 'John', LastName: 'Danny', HasJobsAssociated: true },
+      { headId: 1, Id: 1, FirstName: 'Edgar Thenier', LastName: 'Demon' },
+      { headId: 2, Id: 2, FirstName: 'Jasmin Fröhlich', LastName: 'Kimbell', HasJobsAssociated: true },
+      { headId: 2, Id: 3, FirstName: 'Livia Schuepbach', LastName: 'Shaw', HasJobsAssociated: true },
+      { headId: 3, Id: 1, FirstName: 'Meseret Eshetu', LastName: 'Benoff', HasJobsAssociated: true },
+      { headId: 3, Id: 2, FirstName: 'Nelson Magrini', LastName: 'Hanks' },
+      { headId: 3, Id: 3, FirstName: 'Patrick Studer', LastName: 'Demon' },
+      { headId: 4, Id: 1, FirstName: 'Renate Guenter-Balga', LastName: 'Zest', HasJobsAssociated: true },
+      { headId: 4, Id: 2, FirstName: 'Stefan Althaus', LastName: 'Dawn' },
+      { headId: 4, Id: 3, FirstName: 'Ute Kallweit', LastName: 'Crew' },
+      { headId: 4, Id: 1, FirstName: 'Regula Heini Hodel', LastName: 'Danny', HasJobsAssociated: true },
     ];
     this.dropdownPersonSettings = {
       singleSelection: true,
@@ -148,16 +154,14 @@ export class AppComponent implements OnInit {
       enableCheckAll: false
     };
 
-
-
     this.job = [
-      { JobId: 1, JobName: 'job 1', PersonId: 2, RoleId: [4, 1] },
-      { JobId: 2, JobName: 'job 2', PersonId: 3, RoleId: [4, 3] },
-      { JobId: 3, JobName: 'job 3', PersonId: 4, RoleId: [1, 2] },
-      { JobId: 5, JobName: 'job 5', PersonId: 7, RoleId: [4] },
-      { JobId: 6, JobName: 'job 6', PersonId: 10, RoleId: [3] },
-      { JobId: 7, JobName: 'job 7', PersonId: 1, RoleId: [1] },
-      { JobId: 8, JobName: 'job 8', PersonId: 1, RoleId: [2] },
+      { JobId: 1, JobName: 'Warehousing and Inventory Control', PersonId: 2, RoleId: [4, 1] },
+      { JobId: 2, JobName: 'Materials planning and scheduling', PersonId: 3, RoleId: [4, 3] },
+      { JobId: 3, JobName: 'Project Management Clinical', PersonId: 4, RoleId: [1, 2] },
+      { JobId: 5, JobName: 'Purchasing', PersonId: 7, RoleId: [4] },
+      { JobId: 6, JobName: 'Operations Support', PersonId: 10, RoleId: [3] },
+      { JobId: 7, JobName: 'Clinical Development/Operations (non-MD)', PersonId: 1, RoleId: [1] },
+      { JobId: 8, JobName: 'Tax', PersonId: 1, RoleId: [2] },
     ];
 
     this.dropdownJobSettings = {
@@ -173,10 +177,10 @@ export class AppComponent implements OnInit {
     };
 
     this.roles = [
-      { RoleId: 1, RoleName: 'Role1 for job 1', backupsIds: [2] },
-      { RoleId: 2, RoleName: 'Role1 for job 2', backupsIds: [1] },
-      { RoleId: 3, RoleName: 'Role2 for job 2', backupsIds: [2] },
-      { RoleId: 4, RoleName: 'Role1 for job 3', backupsIds: [1] },
+      { RoleId: 1, RoleName: 'AHP/HTC/NBA', backupsIds: [2] },
+      { RoleId: 2, RoleName: 'Catalog Administrator', backupsIds: [1] },
+      { RoleId: 3, RoleName: 'Business Technology Representative', backupsIds: [3] },
+      { RoleId: 4, RoleName: 'Sr. Manager/Manager', backupsIds: [4] },
     ];
 
     this.dropdownRoleSettings = {
@@ -191,8 +195,10 @@ export class AppComponent implements OnInit {
     };
 
     this.backup = [
-      { id: 1, Email: 'milind.kolte@kanakasoftware.com', FirstName: 'Milind', LastName: 'Kolte' },
-      { id: 2, Email: 'praneet.nadkar@kanakasoftware.com', FirstName: 'Praneet', LastName: 'Nadkar' },
+      { id: 1, Email: 'milind.kolte@kanakasoftware.com', FirstName: 'Anita Jivani', LastName: 'Kolte' },
+      { id: 2, Email: 'praneet.nadkar@kanakasoftware.com', FirstName: 'Dax Howard', LastName: 'Nadkar' },
+      { id: 3, Email: 'praneet.nadkar@kanakasoftware.com', FirstName: 'Vivek Maiya', LastName: 'Nadkar' },
+      { id: 4, Email: 'praneet.nadkar@kanakasoftware.com', FirstName: 'Jennifer Koger', LastName: 'Nadkar' }
     ];
 
     this.dropdownBackupSettings = {
@@ -404,5 +410,14 @@ export class AppComponent implements OnInit {
     this.tableContent = [];
     this.source = new LocalDataSource(this.tableContent);
     this.source.refresh();
+  }
+
+  confirm(): void {
+    this.modalRef.hide();
+    this.resetGrid();
+  }
+
+  decline(): void {
+    this.modalRef.hide();
   }
 }
