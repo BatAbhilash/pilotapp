@@ -48,4 +48,6 @@ position: relative !important;
 z-index: 0 !important; 
 }
 
-.table>tfoot>tr>td{border: 1px solid #e9ebec;}
+.pull-right {
+    float: right;
+}

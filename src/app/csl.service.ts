@@ -3,6 +3,7 @@ import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { catchError, map, tap } from 'rxjs/operators';
 import { Observable } from 'rxjs/Observable';
 import { of } from 'rxjs/observable/of';
+import 'rxjs/add/operator/toPromise';
 
 const httpOptions = {
   headers: new HttpHeaders({ 'Content-Type': 'application/json' })
@@ -13,12 +14,13 @@ export class CslService {
   private apiUrl = 'http://192.168.1.114/ArisAPI/api/Values/';  // URL to web api
   constructor(private http: HttpClient) { }
 
-  getCSLData(path: string): Observable<any[]> {
+   getCSLData(path: string) {
     const url = this.apiUrl + path;
-    return this.http.get<any[]>(url, httpOptions).pipe(
-      tap(obj => console.log(`fetched heroes`)),
-      catchError(this.handleError('getCSLData', []))
-    );
+    return this.http.get(url, httpOptions);
+    // .pipe(
+    //   tap(obj => console.log(`fetched data`)),
+    //   catchError(this.handleError('getCSLData', []))
+    // );
   }
 
   private handleError<T>(operation = 'operation', result?: T) {

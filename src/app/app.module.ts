@@ -1,24 +1,38 @@
 import { BrowserModule } from '@angular/platform-browser';
 import { NgModule } from '@angular/core';
-import { NgMultiSelectDropDownModule } from 'ng-multiselect-dropdown';
+// import { NgMultiSelectDropDownModule } from 'ng-multiselect-dropdown';
 import { AppComponent } from './app.component';
 import { FormsModule } from '@angular/forms';
-import {NgbModule} from '@ng-bootstrap/ng-bootstrap';
-import {DataTableModule} from 'angular2-datatable';
+import { NgbModule } from '@ng-bootstrap/ng-bootstrap';
+import { DataTableModule } from 'angular2-datatable';
 import {BrowserAnimationsModule} from '@angular/platform-browser/animations';
-import {ToasterModule, ToasterService} from 'angular5-toaster';
+import { ToasterModule, ToasterService } from 'angular5-toaster';
 import { Ng2SmartTableModule } from 'ng2-smart-table';
 import { CslService } from './csl.service';
 import { HttpClientModule } from '@angular/common/http';
 import { ModalModule } from 'ngx-bootstrap';
+import { TestComponent } from './test/test.component';
+import { RouterModule, Routes } from '@angular/router';
+// import { MultiSelectComponent } from './ng-multiselect-dropdown/src/multiselect.component';
+import { NgMultiSelectDropDownModule } from './ng-multiselect-dropdown/src';
+
+const routes: Routes = [
+  { path: 'app', component: AppComponent },
+  { path: 'test', component: TestComponent },
+  { path: '', redirectTo: '/app', pathMatch: 'full' }
+];
+
 
 @NgModule({
   declarations: [
-    AppComponent
+    AppComponent,
+    TestComponent,
+    // MultiSelectComponent
   ],
   imports: [
     BrowserModule,
     FormsModule,
+    RouterModule.forRoot(routes),
     NgbModule.forRoot(),
     ModalModule.forRoot(),
     NgMultiSelectDropDownModule.forRoot(),
@@ -26,7 +40,7 @@ import { ModalModule } from 'ngx-bootstrap';
     DataTableModule,
     BrowserAnimationsModule,
     Ng2SmartTableModule,
-    ToasterModule
+    ToasterModule,
   ],
   providers: [CslService],
   bootstrap: [AppComponent]

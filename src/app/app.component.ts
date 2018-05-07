@@ -7,6 +7,7 @@ import * as _ from 'lodash';
 import { CslService } from '../app/csl.service';
 import { BsModalService } from 'ngx-bootstrap/modal';
 import { BsModalRef } from 'ngx-bootstrap/modal/bs-modal-ref.service';
+import { Http, Response } from '@angular/http';
 // import '../assets/bootstrap-multiselect.js';
 
 @Component({
@@ -54,6 +55,7 @@ export class AppComponent implements OnInit {
   modalData: {};
   settings = {
     selectMode: 'multi',
+    hideSubHeader: true,
     actions: {
       delete: false,
       add: false,
@@ -62,7 +64,7 @@ export class AppComponent implements OnInit {
     },
     columns: {
       location: {
-        title: 'Location'
+        title: 'Location',
       },
       name: {
         title: 'Person'
@@ -83,44 +85,31 @@ export class AppComponent implements OnInit {
     }
   };
   private toasterService: ToasterService;
+  cslService: CslService;
   constructor(toasterService: ToasterService, cslService: CslService, private modalService: BsModalService) {
     this.toasterService = toasterService;
     this.source = new LocalDataSource(this.tableContent);
+    this.cslService = cslService;
     // locations, leads
-    // cslService.getCSLData('data').subscribe(data => console.log(data));
   }
+
+
   openModal(template: TemplateRef<any>) {
     this.modalRef = this.modalService.show(template);
   }
 
+  loadData() {
+    this.cslService.getCSLData('Location').subscribe(obj => {
+     this.location = obj;
+    });
+  }
+
   ngOnInit() {
-    this.location = [
-      { LocationId: 1, LocationName: 'Liverpool' },
-      { LocationId: 2, LocationName: 'Budapest' },
-      { LocationId: 3, LocationName: 'Cleveland' },
-      { LocationId: 4, LocationName: 'Marburg' }
-    ];
+    this.loadData();
+
     this.dropdownLocationSettings = {
       singleSelection: true,
-      idField: 'LocationId',
-      textField: 'LocationName',
-      selectAllText: 'Select All',
-      unSelectAllText: 'UnSelect All',
-      itemsShowLimit: 3,
-      allowSearchFilter: true,
-      closeDropDownOnSelection: true,
-      enableCheckAll: false
-    };
-
-    this.headData = [
-      { headId: 1, Name: 'Adrian Aeschlimann', Id: 3 },
-      { headId: 2, Name: 'Barbara Moser', Id: 4 },
-      { headId: 3, Name: 'Juerg Hofmaenner', Id: 2 },
-      { headId: 4, Name: 'Katharine von der Fecht', Id: 1 },
-    ];
-    this.dropdownHeadSettings = {
-      singleSelection: true,
-      idField: 'headId',
+      idField: 'Id',
       textField: 'Name',
       selectAllText: 'Select All',
       unSelectAllText: 'UnSelect All',
@@ -130,22 +119,23 @@ export class AppComponent implements OnInit {
       enableCheckAll: false
     };
 
-    this.persons = [
-      { headId: 1, Id: 1, FirstName: 'Edgar Thenier', LastName: 'Demon' },
-      { headId: 2, Id: 2, FirstName: 'Jasmin Fröhlich', LastName: 'Kimbell', HasJobsAssociated: true },
-      { headId: 2, Id: 3, FirstName: 'Livia Schuepbach', LastName: 'Shaw', HasJobsAssociated: true },
-      { headId: 3, Id: 1, FirstName: 'Meseret Eshetu', LastName: 'Benoff', HasJobsAssociated: true },
-      { headId: 3, Id: 2, FirstName: 'Nelson Magrini', LastName: 'Hanks' },
-      { headId: 3, Id: 3, FirstName: 'Patrick Studer', LastName: 'Demon' },
-      { headId: 4, Id: 1, FirstName: 'Renate Guenter-Balga', LastName: 'Zest', HasJobsAssociated: true },
-      { headId: 4, Id: 2, FirstName: 'Stefan Althaus', LastName: 'Dawn' },
-      { headId: 4, Id: 3, FirstName: 'Ute Kallweit', LastName: 'Crew' },
-      { headId: 4, Id: 1, FirstName: 'Regula Heini Hodel', LastName: 'Danny', HasJobsAssociated: true },
-    ];
+    this.dropdownHeadSettings = {
+      singleSelection: true,
+      idField: 'LocationId',
+      textField: 'Name',
+      selectAllText: 'Select All',
+      unSelectAllText: 'UnSelect All',
+      itemsShowLimit: 3,
+      allowSearchFilter: true,
+      closeDropDownOnSelection: true,
+      enableCheckAll: false
+    };
+
+
     this.dropdownPersonSettings = {
       singleSelection: true,
-      idField: 'Id',
-      textField: 'FirstName',
+      idField: 'PersonId',
+      textField: 'Name',
       selectAllText: 'Select All',
       unSelectAllText: 'UnSelect All',
       itemsShowLimit: 3,
@@ -217,11 +207,13 @@ export class AppComponent implements OnInit {
   onLocationSelect(item: any) {
     const self = this;
     self.response.Location = item;
-    this.selectedHead = _.filter(self.headData, function (obj) {
-      if (obj.Id === item.LocationId) {
+    const tls = _.filter(self.location, function (obj) {
+      if (obj.Id === item.Id) {
         return obj;
       }
     });
+    console.log(tls);
+    this.headData = tls[0].TeamLeads;
     this.onHeadSelect(this.selectedHead[0]);
   }
 
@@ -233,6 +225,7 @@ export class AppComponent implements OnInit {
         return obj;
       }
     });
+    this.persons = [];
   }
 
   onPersonSelect(item: any) {
@@ -346,22 +339,22 @@ export class AppComponent implements OnInit {
     tableData['backup'] = 'NA';
 
     if (self.response.Job.length === 0) {
-    _.forEach(self.roles, function (obj) {
-      if (_.includes(self.response.Role, obj.RoleId)) {
-        roleNames.push(obj.RoleName);
-        let o = _.cloneDeep(tableData);
-        _.each(self.backup, function(bo) {
-          if (obj.backupsIds[0] === bo.id) {
-            o['backup'] = bo.FirstName;
-          }
-        });
+      _.forEach(self.roles, function (obj) {
+        if (_.includes(self.response.Role, obj.RoleId)) {
+          roleNames.push(obj.RoleName);
+          let o = _.cloneDeep(tableData);
+          _.each(self.backup, function (bo) {
+            if (obj.backupsIds[0] === bo.id) {
+              o['backup'] = bo.FirstName;
+            }
+          });
 
-        o['roleName'] = obj.RoleName;
-        self.tableContent.push(o);
-      }
-    });
+          o['roleName'] = obj.RoleName;
+          self.tableContent.push(o);
+        }
+      });
 
-  } else if (self.response.Job.length > 0) {
+    } else if (self.response.Job.length > 0) {
       _.forEach(self.response.Job, function (obj) {
         let o = _.cloneDeep(tableData);
         o['jobName'] = obj.JobName;
@@ -420,4 +413,13 @@ export class AppComponent implements OnInit {
   decline(): void {
     this.modalRef.hide();
   }
+
+  onFilterChange($event, category) {
+      console.log($event);
+      if (category === 'person') {
+        this.cslService.getCSLData('Persons?teamLeadName=' + this.response.Head['Name'] + '&personName=' + $event).subscribe(obj => {
+          this.persons = obj;
+         });
+      }
+   }
 }
