@@ -11,14 +11,12 @@ import { Ng2SmartTableModule } from 'ng2-smart-table';
 import { CslService } from './csl.service';
 import { HttpClientModule } from '@angular/common/http';
 import { ModalModule } from 'ngx-bootstrap';
-import { TestComponent } from './test/test.component';
 import { RouterModule, Routes } from '@angular/router';
 // import { MultiSelectComponent } from './ng-multiselect-dropdown/src/multiselect.component';
 import { NgMultiSelectDropDownModule } from './ng-multiselect-dropdown/src';
 
 const routes: Routes = [
   { path: 'app', component: AppComponent },
-  { path: 'test', component: TestComponent },
   { path: '', redirectTo: '/app', pathMatch: 'full' }
 ];
 
@@ -26,8 +24,6 @@ const routes: Routes = [
 @NgModule({
   declarations: [
     AppComponent,
-    TestComponent,
-    // MultiSelectComponent
   ],
   imports: [
     BrowserModule,
