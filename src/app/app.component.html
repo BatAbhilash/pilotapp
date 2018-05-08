@@ -1,5 +1,7 @@
+
 <!-- <router-outlet></router-outlet> -->
 <div class="container body-content">
+    <ngx-loading [show]="loading" [config]="{ backdropBorderRadius: '14px' }"></ngx-loading>
   <toaster-container></toaster-container>
   <form (ngSubmit)="open(myForm)" #myForm="ngForm">
     <div class="row" style="margin-top: 7%">

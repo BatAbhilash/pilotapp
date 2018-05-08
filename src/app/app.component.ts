@@ -16,6 +16,7 @@ import { Http, Response } from '@angular/http';
   styleUrls: ['./app.component.css']
 })
 export class AppComponent implements OnInit {
+  loading = false;
   modalRef: BsModalRef;
   source: LocalDataSource;
   today = Date.now();
@@ -99,9 +100,15 @@ export class AppComponent implements OnInit {
   }
 
   loadData() {
-    this.cslService.getCSLData('Location').subscribe(obj => {
-     this.location = obj;
-    });
+    this.loading = true;
+    this.cslService
+      .getCSLData('Location').subscribe(
+      obj => {
+        this.location = obj;
+        this.loading = false;
+      }, err => {
+        this.loading = false;
+      });
   }
 
   ngOnInit() {
@@ -212,7 +219,6 @@ export class AppComponent implements OnInit {
         return obj;
       }
     });
-    console.log(tls);
     this.headData = tls[0].TeamLeads;
     this.onHeadSelect(this.selectedHead[0]);
   }
@@ -415,11 +421,13 @@ export class AppComponent implements OnInit {
   }
 
   onFilterChange($event, category) {
-      console.log($event);
-      if (category === 'person') {
-        this.cslService.getCSLData('Persons?teamLeadName=' + this.response.Head['Name'] + '&personName=' + $event).subscribe(obj => {
-          this.persons = obj;
-         });
-      }
-   }
+    console.log($event);
+    this.loading = true;
+    if (category === 'person') {
+      this.cslService.getCSLData('Persons?teamLeadName=' + this.response.Head['Name'] + '&personName=' + $event).subscribe(obj => {
+        this.loading = false;
+        this.persons = obj;
+      });
+    }
+  }
 }

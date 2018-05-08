@@ -16,7 +16,7 @@ export class CslService {
 
    getCSLData(path: string) {
     const url = this.apiUrl + path;
-    return this.http.get(url, httpOptions);
+    return this.http.get<any[]>(url, httpOptions);
     // .pipe(
     //   tap(obj => console.log(`fetched data`)),
     //   catchError(this.handleError('getCSLData', []))

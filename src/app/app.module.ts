@@ -14,6 +14,7 @@ import { ModalModule } from 'ngx-bootstrap';
 import { RouterModule, Routes } from '@angular/router';
 // import { MultiSelectComponent } from './ng-multiselect-dropdown/src/multiselect.component';
 import { NgMultiSelectDropDownModule } from './ng-multiselect-dropdown/src';
+import { LoadingModule } from 'ngx-loading';
 
 const routes: Routes = [
   { path: 'app', component: AppComponent },
@@ -37,6 +38,7 @@ const routes: Routes = [
     BrowserAnimationsModule,
     Ng2SmartTableModule,
     ToasterModule,
+    LoadingModule
   ],
   providers: [CslService],
   bootstrap: [AppComponent]
