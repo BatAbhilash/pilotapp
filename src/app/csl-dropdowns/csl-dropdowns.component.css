@@ -1,0 +1,14 @@
+ul.multiselect-container.dropdown-menu {
+    display: block;
+}
+
+button.multiselect.dropdown-toggle.btn.btn-default {
+    display: none;
+}
+
+ul.multiselect-container.dropdown-menu {
+    position: relative;
+    width: 300px;
+    height: 200px;
+    overflow: auto;
+}

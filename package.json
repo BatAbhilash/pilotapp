@@ -24,7 +24,6 @@
     "@ng-bootstrap/ng-bootstrap": "^1.1.2",
     "@types/lodash": "^4.14.108",
     "angular-bootstrap-multiselect": "^1.1.11",
-    "angular2-datatable": "^0.6.0",
     "angular5-toaster": "^1.0.2",
     "bootstrap": "^4.1.0",
     "core-js": "^2.4.1",
