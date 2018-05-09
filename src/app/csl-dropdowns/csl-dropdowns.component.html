@@ -48,7 +48,7 @@
 
         <div class="form-group">
           <div>
-            <ng-multiselect-dropdown name="selectedJobs" id="selectedJobs" [placeholder]="'Select a Job'" [data]="selectedJobs" [(ngModel)]="selectedJobs"
+            <ng-multiselect-dropdown name="selectedJobs" id="selectedJobs" [placeholder]="'Select a Job'" [data]="job" [(ngModel)]="selectedJobs"
               [settings]="dropdownJobSettings" (onSelect)="onJobSelect($event)" (onDeSelect)="onDeselct($event,'Job')" (onFilterChange)="onFilterChange($event, 'job')">
             </ng-multiselect-dropdown>
           </div>

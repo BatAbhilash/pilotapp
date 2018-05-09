@@ -45,7 +45,7 @@ export class CslDropdownsComponent implements OnInit {
   response = {
     Location: {},
     Head: {},
-    Person: {},
+    Person: [],
     Job: [],
     Role: [],
     Backup: []
@@ -96,7 +96,7 @@ export class CslDropdownsComponent implements OnInit {
 
 
   ngOnInit() {
-    this.loadData();
+    this.getLocationData();
 
     this.dropdownLocationSettings = {
       singleSelection: true,
@@ -226,10 +226,11 @@ export class CslDropdownsComponent implements OnInit {
       'token': localStorage.getItem('token')
     };
 
-      this.cslService.getCSLData('Persons', teamLeadName)
+    this.cslService.getCSLData('Persons', teamLeadName)
       .subscribe(obj => {
-        this.persons = obj;
-        this.selectedPersons = obj;
+        self.persons = obj;
+        self.selectedPersons = obj;
+        self.response.Person = obj;
       });
 
     this.persons = [];
@@ -237,22 +238,16 @@ export class CslDropdownsComponent implements OnInit {
 
   onPersonSelect(item: any) {
     const self = this;
-    self.response.Person = item;
-    self.selectedJobs = _.filter(self.job, function (obj) {
-      if (obj.PersonId === item.Id) {
-        console.log(obj);
-        self.response.Job.push(obj);
-        return obj;
-      }
-    });
-    console.log(self.selectedJobs);
-    console.log(self.response);
+    if (self.response.Person.length > 0) {
+      self.response.Person.push(item);
+    } else {
+      self.response.Person[0] = item;
+    }
   }
 
   onJobSelect(item: any) {
     const self = this;
     self.response.Job.push(item);
-    console.log(self.response);
   }
 
   onRoleSelect(item: any) {
@@ -261,21 +256,20 @@ export class CslDropdownsComponent implements OnInit {
     self.selectedJobs = [];
     self.response.Job = [];
 
-    self.response.Role.push(item.RoleId);
+    self.response.Role.push(item);
     const selectedObj = _.find(self.roles, function (obj) {
       return obj.RoleId === item.RoleId;
     });
     this.selectedBackups = _.filter(self.backup, function (obj) {
       if (_.includes(selectedObj.backupsIds, obj.id)) {
-        self.response.Backup.push(obj.id);
+        self.response.Backup.push(obj);
         return obj;
       }
     });
   }
 
   onBackupSelect(item: any) {
-    this.response.Backup.push(item.id);
-    console.log(item);
+    this.response.Backup.push(item);
   }
 
 
@@ -285,7 +279,7 @@ export class CslDropdownsComponent implements OnInit {
       self.clearData();
     } else if (category === 'head') {
       self.response.Head = {};
-      self.response.Person = {};
+      self.response.Person = [];
       self.response.Job = [];
       self.response.Role = [];
       self.response.Backup = [];
@@ -294,7 +288,9 @@ export class CslDropdownsComponent implements OnInit {
       self.selectedBackups = [];
       self.selectedHead = [];
     } else if (category === 'Person') {
-      self.response.Person = {};
+      // self.response.Person = {};
+      _.pullAll(self.response.Person, item);
+      console.log(self.response.Person);
       self.response.Job = [];
       self.response.Role = [];
       self.response.Backup = [];
@@ -302,20 +298,9 @@ export class CslDropdownsComponent implements OnInit {
       self.selectedRoles = [];
       self.selectedBackups = [];
     } else if (category === 'Job') {
-
-      self.response.Job = _.filter(self.response.Job, function (obj) {
-        return obj.JobId !== item.JobId;
-      });
+      _.pullAll(self.response.Job, item);
     } else if (category === 'Role') {
-
-      if (self.response.Role.length > 0) {
-        self.response.Role = _.filter(self.response.Role, function (obj) {
-          return obj.RoleId !== item.RoleId;
-        });
-      } else {
-        self.response.Role = [];
-        self.response.Backup = [];
-      }
+      _.pullAll(self.response.Role, item);
       self.selectedBackups = [];
     } else {
       if (self.response.Backup.length > 0) {
@@ -326,62 +311,49 @@ export class CslDropdownsComponent implements OnInit {
         self.response.Backup = [];
       }
     }
-
-    console.log(item);
-    console.log(category);
   }
 
-  loadData() {
+  getLocationData() {
     this.cslService
       .getCSLData('Location').subscribe(
       obj => {
         this.location = obj;
       }, err => {
+        console.log(err);
       });
   }
 
 
   addRow() {
-    this.toasterService.pop('success', 'Success!', 'Record Added Successfully!');
     const self = this;
     this.flag = true;
     self.response.Role = _.uniq(self.response.Role);
-    console.log(self.response);
     const roleNames = [];
     const tableData = {};
+
     tableData['location'] = self.response.Location['Name'];
-    tableData['name'] = self.response.Person['Name'];
     tableData['head'] = self.response.Head['Name'];
-    tableData['roleName'] = 'NA';
-    tableData['jobName'] = 'NA';
-    tableData['backup'] = 'NA';
 
-    if (self.response.Job.length === 0) {
-      _.forEach(self.roles, function (obj) {
-        if (_.includes(self.response.Role, obj.RoleId)) {
-          roleNames.push(obj.RoleName);
-          let o = _.cloneDeep(tableData);
-          _.each(self.backup, function (bo) {
-            if (obj.backupsIds[0] === bo.id) {
-              o['backup'] = bo.FirstName;
-            }
-          });
+    tableData['jobName'] = (self.response.Job.length > 0) ?
+      self.response.Job.map(x => x.JobName).join(', ') : 'NA';
 
-          o['roleName'] = obj.RoleName;
-          self.tableContent.push(o);
-        }
-      });
+    tableData['roleName'] = (self.response.Role.length > 0) ?
+      self.response.Role.map(x => x.RoleName).join(', ') : 'NA';
 
-    } else if (self.response.Job.length > 0) {
-      _.forEach(self.response.Job, function (obj) {
-        let o = _.cloneDeep(tableData);
-        o['jobName'] = obj.JobName;
+    tableData['backup'] = (self.response.Backup.length > 0) ?
+      self.response.Backup.map(x => x.FirstName).join(', ') : 'NA';
+
+    if (self.response.Person.length > 0) {
+      _.forEach(self.response.Person, function (obj) {
+        const o = _.cloneDeep(tableData);
+        o['name'] = obj.Name;
         self.tableContent.push(o);
       });
     }
     this.source = new LocalDataSource(this.tableContent);
     this.source.refresh();
     this.clearData();
+    this.toasterService.pop('success', 'Success!', 'Record Added Successfully!');
   }
 
   clearData() {
@@ -389,7 +361,7 @@ export class CslDropdownsComponent implements OnInit {
     self.response = {
       Location: {},
       Head: {},
-      Person: {},
+      Person: [],
       Job: [],
       Role: [],
       Backup: []
@@ -432,29 +404,32 @@ export class CslDropdownsComponent implements OnInit {
   }
 
   onFilterChange($event, category) {
-
+    const self = this;
 
     if (category === 'person') {
-      this.persons = this.selectedPersons;
+      // this.persons = this.selectedPersons;
       if ($event === '' || !this.response.Head['Name']) {
         this.persons = [];
         return;
       }
 
       const teamLeadName = {
-         'teamLeadName': '',
+        'teamLeadName': '',
         'personName': $event,
         'token': localStorage.getItem('token')
       };
 
       this.cslService.getCSLData('Persons', teamLeadName)
-      .subscribe(obj => {
-        _.each(obj, function(oData) {
-          this.persons.push(oData);
+        .subscribe(obj => {
+          console.log(obj);
+          self.persons = obj;
+          // _.each(obj, function(oData) {
+          //   self.persons.push(oData);
+          // });
         });
-        // this.persons = obj.forEach;
-      });
     }
+    self.persons = _.uniq(self.persons);
+    console.log(self.persons);
   }
 
 
