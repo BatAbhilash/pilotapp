@@ -17,7 +17,6 @@ import * as _ from 'lodash';
   styleUrls: ['./csl-dropdowns.component.css']
 })
 export class CslDropdownsComponent implements OnInit {
-  loading = false;
   modalRef: BsModalRef;
   source: LocalDataSource;
   selectedRows = [];
@@ -38,7 +37,6 @@ export class CslDropdownsComponent implements OnInit {
   job = [];
   roles = [];
   backup = [];
-  personsByLocation = [];
   selectedPersons = [];
   selectedHead = [];
   selectedJobs = [];
@@ -87,30 +85,15 @@ export class CslDropdownsComponent implements OnInit {
   };
   private toasterService: ToasterService;
   cslService: CslService;
+
+
   constructor(toasterService: ToasterService, cslService: CslService, private modalService: BsModalService) {
     this.toasterService = toasterService;
     this.source = new LocalDataSource(this.tableContent);
     this.cslService = cslService;
-    // locations, leads
-    console.log(localStorage.getItem('token'));
   }
 
 
-  openModal(template: TemplateRef<any>) {
-    this.modalRef = this.modalService.show(template);
-  }
-
-  loadData() {
-    this.loading = true;
-    this.cslService
-      .getCSLData('Location').subscribe(
-      obj => {
-        this.location = obj;
-        this.loading = false;
-      }, err => {
-        this.loading = false;
-      });
-  }
 
   ngOnInit() {
     this.loadData();
@@ -141,7 +124,7 @@ export class CslDropdownsComponent implements OnInit {
 
 
     this.dropdownPersonSettings = {
-      singleSelection: true,
+      singleSelection: false,
       idField: 'PersonId',
       textField: 'Name',
       selectAllText: 'Select All',
@@ -212,8 +195,18 @@ export class CslDropdownsComponent implements OnInit {
 
   }
 
+  openModal(template: TemplateRef<any>) {
+    this.modalRef = this.modalService.show(template);
+  }
+
+
   onLocationSelect(item: any) {
     const self = this;
+
+    this.persons = [];
+    this.selectedPersons = [];
+    this.selectedHead = [];
+
     self.response.Location = item;
     const tls = _.filter(self.location, function (obj) {
       if (obj.Id === item.Id) {
@@ -221,17 +214,24 @@ export class CslDropdownsComponent implements OnInit {
       }
     });
     this.headData = tls[0].TeamLeads;
-    this.onHeadSelect(this.selectedHead[0]);
+    // this.onHeadSelect(this.selectedHead[0]);
   }
 
   onHeadSelect(item: any) {
     const self = this;
     self.response.Head = item;
-    this.personsByLocation = _.filter(self.persons, function (obj) {
-      if (obj.headId === item.headId) {
-        return obj;
-      }
-    });
+    const teamLeadName = {
+      'teamLeadName': item['Name'],
+      'personName': '',
+      'token': localStorage.getItem('token')
+    };
+
+      this.cslService.getCSLData('Persons', teamLeadName)
+      .subscribe(obj => {
+        this.persons = obj;
+        this.selectedPersons = obj;
+      });
+
     this.persons = [];
   }
 
@@ -331,15 +331,26 @@ export class CslDropdownsComponent implements OnInit {
     console.log(category);
   }
 
+  loadData() {
+    this.cslService
+      .getCSLData('Location').subscribe(
+      obj => {
+        this.location = obj;
+      }, err => {
+      });
+  }
+
+
   addRow() {
     this.toasterService.pop('success', 'Success!', 'Record Added Successfully!');
     const self = this;
     this.flag = true;
     self.response.Role = _.uniq(self.response.Role);
+    console.log(self.response);
     const roleNames = [];
     const tableData = {};
-    tableData['location'] = self.response.Location['LocationName'];
-    tableData['name'] = self.response.Person['FirstName'];
+    tableData['location'] = self.response.Location['Name'];
+    tableData['name'] = self.response.Person['Name'];
     tableData['head'] = self.response.Head['Name'];
     tableData['roleName'] = 'NA';
     tableData['jobName'] = 'NA';
@@ -385,7 +396,6 @@ export class CslDropdownsComponent implements OnInit {
     };
     self.selectedHead = [];
     self.selectedLocation = [];
-    self.personsByLocation = [];
     self.selectedPersons = [];
     self.selectedJobs = [];
     self.selectedRoles = [];
@@ -422,12 +432,27 @@ export class CslDropdownsComponent implements OnInit {
   }
 
   onFilterChange($event, category) {
-    console.log($event);
-    this.loading = true;
+
+
     if (category === 'person') {
-      this.cslService.getCSLData('Persons?teamLeadName=' + this.response.Head['Name'] + '&personName=' + $event).subscribe(obj => {
-        this.loading = false;
-        this.persons = obj;
+      this.persons = this.selectedPersons;
+      if ($event === '' || !this.response.Head['Name']) {
+        this.persons = [];
+        return;
+      }
+
+      const teamLeadName = {
+         'teamLeadName': '',
+        'personName': $event,
+        'token': localStorage.getItem('token')
+      };
+
+      this.cslService.getCSLData('Persons', teamLeadName)
+      .subscribe(obj => {
+        _.each(obj, function(oData) {
+          this.persons.push(oData);
+        });
+        // this.persons = obj.forEach;
       });
     }
   }

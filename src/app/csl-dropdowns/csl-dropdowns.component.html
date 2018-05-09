@@ -1,9 +1,8 @@
+
 <div>
-  <ngx-loading [show]="loading" [config]="{ backdropBorderRadius: '14px' }"></ngx-loading>
   <toaster-container></toaster-container>
   <form (ngSubmit)="open(myForm)" #myForm="ngForm">
     <div class="row" style="margin-top: 7%">
-      <!-- <input type="hidden" name="response" id="response" [(ngModel)]="response"> -->
       <div class="col-md-4">
         <h3>Locations</h3>
 
@@ -49,9 +48,6 @@
 
         <div class="form-group">
           <div>
-            <!-- <ng-multiselect-dropdown name="selectedJobs" id="selectedJobs" [placeholder]="'Select a Job'" [data]="job" [(ngModel)]="selectedJobs"
-                [settings]="dropdownJobSettings" (onSelect)="onJobSelect($event)" (onDeSelect)="onDeselct($event,'Job')">
-              </ng-multiselect-dropdown> -->
             <ng-multiselect-dropdown name="selectedJobs" id="selectedJobs" [placeholder]="'Select a Job'" [data]="selectedJobs" [(ngModel)]="selectedJobs"
               [settings]="dropdownJobSettings" (onSelect)="onJobSelect($event)" (onDeSelect)="onDeselct($event,'Job')" (onFilterChange)="onFilterChange($event, 'job')">
             </ng-multiselect-dropdown>
