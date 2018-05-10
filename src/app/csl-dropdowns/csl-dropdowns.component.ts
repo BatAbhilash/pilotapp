@@ -1,12 +1,9 @@
-import { Component, OnInit, TemplateRef } from '@angular/core';
+import { Component, OnInit, TemplateRef, ViewChild } from '@angular/core';
 import { NgForm } from '@angular/forms';
 import { Http, Response } from '@angular/http';
 import { NgbModal, ModalDismissReasons } from '@ng-bootstrap/ng-bootstrap';
 
-import { ToasterModule, ToasterService } from 'angular5-toaster';
-import { Ng2SmartTableModule, LocalDataSource } from 'ng2-smart-table';
-import { BsModalService } from 'ngx-bootstrap/modal';
-import { BsModalRef } from 'ngx-bootstrap/modal/bs-modal-ref.service';
+import { CsvTableComponent } from '../csv-table/csv-table.component';
 
 import { CslService } from '../../app/csl.service';
 import * as _ from 'lodash';
@@ -14,16 +11,13 @@ import * as _ from 'lodash';
 @Component({
   selector: 'app-csl-dropdowns',
   templateUrl: './csl-dropdowns.component.html',
-  styleUrls: ['./csl-dropdowns.component.css']
+  styleUrls: ['./csl-dropdowns.component.css'],
 })
 export class CslDropdownsComponent implements OnInit {
-  modalRef: BsModalRef;
-  source: LocalDataSource;
-  selectedRows = [];
+  @ViewChild('CsvTableComponent') csvTableComponent: CsvTableComponent;
   title = 'app';
   flag = false;
   tableContent = [];
-  dropdownList = [];
   selectedLocation = [];
   dropdownLocationSettings = {};
   dropdownPersonSettings = {};
@@ -31,76 +25,41 @@ export class CslDropdownsComponent implements OnInit {
   dropdownRoleSettings = {};
   dropdownBackupSettings = {};
   dropdownHeadSettings = {};
+  dropdownSupervisorsSettings = {};
   location = [];
   headData = [];
   persons = [];
   job = [];
   roles = [];
   backup = [];
+  supervisors = [];
   selectedPersons = [];
   selectedHead = [];
   selectedJobs = [];
   selectedRoles = [];
   selectedBackups = [];
+  selectedSupervisors = [];
   response = {
     Location: {},
+    Supervisors: {},
     Head: {},
     Person: [],
     Job: [],
     Role: [],
     Backup: []
   };
-  closeResult: string;
-  modalData: {};
-  settings = {
-    selectMode: 'multi',
-    hideSubHeader: true,
-    actions: {
-      delete: false,
-      add: false,
-      edit: false,
-      select: true,
-    },
-    columns: {
-      location: {
-        title: 'Location',
-      },
-      name: {
-        title: 'Person'
-      },
-      jobName: {
-        title: 'Job'
-      },
-      roleName: {
-        title: 'Role'
-      },
-      backup: {
-        title: 'Backup'
-      }
-    },
-    defaultStyle: false,
-    attr: {
-      class: 'table table-bordered'
-    }
-  };
-  private toasterService: ToasterService;
   cslService: CslService;
 
 
-  constructor(toasterService: ToasterService, cslService: CslService, private modalService: BsModalService) {
-    this.toasterService = toasterService;
-    this.source = new LocalDataSource(this.tableContent);
+  constructor(cslService: CslService) {
     this.cslService = cslService;
   }
 
-
-
   ngOnInit() {
     this.getLocationData();
-
     this.dropdownLocationSettings = {
       singleSelection: true,
-      idField: 'Id',
+      idField: 'Name',
       textField: 'Name',
       selectAllText: 'Select All',
       unSelectAllText: 'UnSelect All',
@@ -112,7 +71,19 @@ export class CslDropdownsComponent implements OnInit {
 
     this.dropdownHeadSettings = {
       singleSelection: true,
-      idField: 'LocationId',
+      idField: 'Name',
+      textField: 'Name',
+      selectAllText: 'Select All',
+      unSelectAllText: 'UnSelect All',
+      itemsShowLimit: 3,
+      allowSearchFilter: true,
+      closeDropDownOnSelection: true,
+      enableCheckAll: false
+    };
+
+    this.dropdownSupervisorsSettings = {
+      singleSelection: true,
+      idField: 'Name',
       textField: 'Name',
       selectAllText: 'Select All',
       unSelectAllText: 'UnSelect All',
@@ -195,28 +166,6 @@ export class CslDropdownsComponent implements OnInit {
 
   }
 
-  openModal(template: TemplateRef<any>) {
-    this.modalRef = this.modalService.show(template);
-  }
-
-
-  onLocationSelect(item: any) {
-    const self = this;
-
-    this.persons = [];
-    this.selectedPersons = [];
-    this.selectedHead = [];
-
-    self.response.Location = item;
-    const tls = _.filter(self.location, function (obj) {
-      if (obj.Id === item.Id) {
-        return obj;
-      }
-    });
-    this.headData = tls[0].TeamLeads;
-    // this.onHeadSelect(this.selectedHead[0]);
-  }
-
   onHeadSelect(item: any) {
     const self = this;
     self.response.Head = item;
@@ -236,48 +185,23 @@ export class CslDropdownsComponent implements OnInit {
     this.persons = [];
   }
 
-  onPersonSelect(item: any) {
-    const self = this;
-    if (self.response.Person.length > 0) {
-      self.response.Person.push(item);
-    } else {
-      self.response.Person[0] = item;
-    }
-  }
-
-  onJobSelect(item: any) {
-    const self = this;
-    self.response.Job.push(item);
-  }
-
-  onRoleSelect(item: any) {
-    const self = this;
-
-    self.selectedJobs = [];
-    self.response.Job = [];
-
-    self.response.Role.push(item);
-    const selectedObj = _.find(self.roles, function (obj) {
-      return obj.RoleId === item.RoleId;
-    });
-    this.selectedBackups = _.filter(self.backup, function (obj) {
-      if (_.includes(selectedObj.backupsIds, obj.id)) {
-        self.response.Backup.push(obj);
-        return obj;
-      }
-    });
-  }
-
-  onBackupSelect(item: any) {
-    this.response.Backup.push(item);
-  }
-
-
   onDeselct(item: any, category: any) {
     const self = this;
     if (category === 'Location') {
       self.clearData();
-    } else if (category === 'head') {
+    } else if (category === 'Supervisors') {
+      self.response.Head = {};
+      self.response.Supervisors = {};
+      self.response.Person = [];
+      self.response.Job = [];
+      self.response.Role = [];
+      self.response.Backup = [];
+      self.selectedSupervisors = [];
+      self.selectedJobs = [];
+      self.selectedRoles = [];
+      self.selectedBackups = [];
+      self.selectedHead = [];
+    } else if (category === 'Head') {
       self.response.Head = {};
       self.response.Person = [];
       self.response.Job = [];
@@ -332,6 +256,7 @@ export class CslDropdownsComponent implements OnInit {
     const tableData = {};
 
     tableData['location'] = self.response.Location['Name'];
+    tableData['supervisors'] = self.response.Supervisors['Name'];
     tableData['head'] = self.response.Head['Name'];
 
     tableData['jobName'] = (self.response.Job.length > 0) ?
@@ -350,10 +275,8 @@ export class CslDropdownsComponent implements OnInit {
         self.tableContent.push(o);
       });
     }
-    this.source = new LocalDataSource(this.tableContent);
-    this.source.refresh();
     this.clearData();
-    this.toasterService.pop('success', 'Success!', 'Record Added Successfully!');
+    this.csvTableComponent.addRow();
   }
 
   clearData() {
@@ -361,6 +284,7 @@ export class CslDropdownsComponent implements OnInit {
     self.response = {
       Location: {},
       Head: {},
+      Supervisors: {},
       Person: [],
       Job: [],
       Role: [],
@@ -372,35 +296,7 @@ export class CslDropdownsComponent implements OnInit {
     self.selectedJobs = [];
     self.selectedRoles = [];
     self.selectedBackups = [];
-  }
-
-  deleteRow() {
-    const self = this;
-    _.pullAll(self.tableContent, self.selectedRows);
-    self.source = new LocalDataSource(self.tableContent);
-    self.source.refresh();
-    this.selectedRows = [];
-    this.toasterService.pop('warning', 'Success!', 'Records Deleted Successfully!');
-  }
-
-  onUserRowSelect(event) {
-    this.selectedRows = event.selected;
-    console.log(event);
-  }
-
-  resetGrid() {
-    this.tableContent = [];
-    this.source = new LocalDataSource(this.tableContent);
-    this.source.refresh();
-  }
-
-  confirm(): void {
-    this.modalRef.hide();
-    this.resetGrid();
-  }
-
-  decline(): void {
-    this.modalRef.hide();
+    self.selectedSupervisors = [];
   }
 
   onFilterChange($event, category) {
@@ -414,7 +310,9 @@ export class CslDropdownsComponent implements OnInit {
       }
 
       const teamLeadName = {
-        'teamLeadName': '',
+        'LocationName': self.response.Location['Name'],
+        'SupervisorName': self.response.Supervisors['Name'],
+        'TeamLeadName': self.response.Head['Name'],
         'personName': $event,
         'token': localStorage.getItem('token')
       };
@@ -423,14 +321,68 @@ export class CslDropdownsComponent implements OnInit {
         .subscribe(obj => {
           console.log(obj);
           self.persons = obj;
-          // _.each(obj, function(oData) {
-          //   self.persons.push(oData);
-          // });
         });
     }
     self.persons = _.uniq(self.persons);
     console.log(self.persons);
   }
 
+  onCheckboxSelect(item, category) {
+    console.log(item);
+    const self = this;
+    let temp = [];
+    switch (category) {
+      case 'Location':
+        self.onDeselct({}, 'Supervisors');
+        temp = _.filter(self.location, x => x['Name'] === item);
+        self.response.Location = temp[0];
+        self.supervisors = temp[0]['Supervisors'];
+        break;
 
+      case 'Supervisors':
+      self.onDeselct({}, 'Head');
+      temp = _.filter(self.supervisors, x => x['Name'] === item);
+      self.response.Supervisors = temp[0];
+      self.headData = temp[0].TeamLeads;
+        break;
+
+      case 'Head':
+        self.onDeselct({}, 'Person');
+        temp = _.filter(self.headData, x => x['Name'] === item);
+        self.response.Head = temp[0];
+        self.persons = temp[0]['Persons'];
+        self.selectedPersons = temp[0]['Persons'];
+        self.response.Person = temp[0]['Persons'];
+        break;
+
+      case 'Person':
+        self.onDeselct({}, 'Job');
+        self.onDeselct({}, 'Role');
+          self.response.Person.push(item);
+        break;
+
+      case 'Job':
+        self.response.Job.push(item);
+        break;
+
+      case 'Role':
+        self.selectedJobs = [];
+        self.response.Job = [];
+        self.response.Role.push(item);
+        const selectedObj = _.find(self.roles, function (obj) {
+          return obj.RoleId === item.RoleId;
+        });
+        self.selectedBackups = _.filter(self.backup, function (obj) {
+          if (_.includes(selectedObj.backupsIds, obj.id)) {
+            self.response.Backup.push(obj);
+            return obj;
+          }
+        });
+        break;
+
+      case 'Backup':
+        self.response.Backup.push(item);
+        break;
+    }
+  }
 }

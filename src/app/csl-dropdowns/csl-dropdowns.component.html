@@ -1,39 +1,53 @@
-
 <div>
   <toaster-container></toaster-container>
   <form (ngSubmit)="open(myForm)" #myForm="ngForm">
     <div class="row" style="margin-top: 7%">
-      <div class="col-md-4">
+      <div class="col-md-3">
         <h3>Locations</h3>
 
         <div class="form-group">
           <div>
             <ng-multiselect-dropdown name="selectedItems" id="selectedItems" [placeholder]="'Select a location'" [data]="location" [(ngModel)]="selectedLocation"
-              [settings]="dropdownLocationSettings" (onSelect)="onLocationSelect($event)" (onDeSelect)="onDeselct($event,'Location')" (onFilterChange)="onFilterChange($event, 'Location')">
+              [settings]="dropdownLocationSettings" (onSelect)="onCheckboxSelect($event,'Location')" (onDeSelect)="onDeselct($event,'Location')">
             </ng-multiselect-dropdown>
           </div>
         </div>
 
       </div>
-      <div class="col-md-4">
+
+      <div class="col-md-3">
+        <h3>Supervisors</h3>
+
+        <div class="form-group">
+          <div>
+            <ng-multiselect-dropdown name="selectedSupervisors" id="selectedSupervisors" [placeholder]="'Select a Supervisor'" [data]="supervisors" [(ngModel)]="selectedSupervisors"
+              [settings]="dropdownSupervisorsSettings" (onSelect)="onCheckboxSelect($event,'Supervisors')" (onDeSelect)="onDeselct($event,'Supervisors')"
+              (onFilterChange)="onFilterChange($event, 'Supervisors')">
+            </ng-multiselect-dropdown>
+          </div>
+        </div>
+
+      </div>
+      <div class="col-md-3">
         <h3>Team Lead</h3>
         <div class="form-group">
           <div>
 
             <ng-multiselect-dropdown name="selectedHead" id="selectedHead" [placeholder]="'Select a Team Lead'" [data]="headData" [(ngModel)]="selectedHead"
-              [settings]="dropdownHeadSettings" (onSelect)="onHeadSelect($event)" (onDeSelect)="onDeselct($event,'head')" (onFilterChange)="onFilterChange($event, 'head')">
+              [settings]="dropdownHeadSettings" (onSelect)="onCheckboxSelect($event,'Head')" (onDeSelect)="onDeselct($event,'Head')" (onFilterChange)="onFilterChange($event, 'head')">
             </ng-multiselect-dropdown>
           </div>
         </div>
 
       </div>
-      <div class="col-md-4">
+      <div class="col-md-3">
         <h3>Persons</h3>
         <div class="form-group">
           <div>
 
-            <ng-multiselect-dropdown name="selectedPersons" id="selectedPersons" [placeholder]="'Select a Person'" [data]="persons"
-              [(ngModel)]="selectedPersons" [settings]="dropdownPersonSettings" (onSelect)="onPersonSelect($event)" (onDeSelect)="onDeselct($event,'Person')" (onFilterChange)="onFilterChange($event, 'person')">
+            <ng-multiselect-dropdown name="selectedPersons" id="selectedPersons" [placeholder]="'Select a Person'" [data]="persons" [(ngModel)]="selectedPersons"
+              [settings]="dropdownPersonSettings" (onSelect)="onCheckboxSelect($event,'Person')" (onDeSelect)="onDeselct($event,'Person')"
+              (onFilterChange)="onFilterChange($event, 'person')">
             </ng-multiselect-dropdown>
           </div>
         </div>
@@ -49,7 +63,7 @@
         <div class="form-group">
           <div>
             <ng-multiselect-dropdown name="selectedJobs" id="selectedJobs" [placeholder]="'Select a Job'" [data]="job" [(ngModel)]="selectedJobs"
-              [settings]="dropdownJobSettings" (onSelect)="onJobSelect($event)" (onDeSelect)="onDeselct($event,'Job')" (onFilterChange)="onFilterChange($event, 'job')">
+              [settings]="dropdownJobSettings" (onSelect)="onCheckboxSelect($event,'Job')" (onDeSelect)="onDeselct($event,'Job')" (onFilterChange)="onFilterChange($event, 'job')">
             </ng-multiselect-dropdown>
           </div>
         </div>
@@ -60,8 +74,8 @@
         <div class="form-group">
           <div>
             <ng-multiselect-dropdown name="selectedRoles" id="selectedRoles" [placeholder]="'Select a Role'" [data]="roles" [(ngModel)]="selectedRoles"
-              [settings]="dropdownRoleSettings" (onSelect)="onRoleSelect($event)" (onDeSelect)="onDeselct($event,'Role')" (onFilterChange)="onFilterChange($event, 'role')">
-            </ng-multiselect-dropdown> 
+              [settings]="dropdownRoleSettings" (onSelect)="onCheckboxSelect($event,'Role')" (onDeSelect)="onDeselct($event,'Role')" (onFilterChange)="onFilterChange($event, 'role')">
+            </ng-multiselect-dropdown>
           </div>
         </div>
       </div>
@@ -71,45 +85,22 @@
         <div class="form-group">
           <div>
             <ng-multiselect-dropdown name="selectedBackups" id="selectedBackups" [placeholder]="'Select a Backup'" [data]="backup" [(ngModel)]="selectedBackups"
-              [settings]="dropdownBackupSettings" (onSelect)="onBackupSelect($event)" (onDeSelect)="onDeselct($event,'backup')" (onFilterChange)="onFilterChange($event, 'backup')">
+              [settings]="dropdownBackupSettings" (onSelect)="onCheckboxSelect($event,'Backup')" (onDeSelect)="onDeselct($event,'backup')"
+              (onFilterChange)="onFilterChange($event, 'backup')">
             </ng-multiselect-dropdown>
           </div>
         </div>
       </div>
-    </div> 
+    </div>
     <div class="row">
       <div class="col-md-12">
         <div class="pull-right">
-        <button type="button" class="btn btn-success" id="save" (click)="addRow()">Add Mapping</button>
+          <button type="button" class="btn btn-success" id="save" (click)="addRow()">Add Mapping</button>
         </div>
       </div>
     </div>
   </form>
-
-  <div style="margin-top:10px" *ngIf="tableContent.length > 0">
-    <div class="row">
-      <div class="col-lg-12 col-md-12">
-        <ng2-smart-table [settings]="settings" [source]="source" (userRowSelect)="onUserRowSelect($event)"></ng2-smart-table>
-      </div>
-
-    </div>
-    <div class="row">
-      <div class="col-lg-12 col-md-12">
-        <div class="pull-right">
-        <button type="button" class="btn btn-success" id="submit">Submit</button>
-        <button type="button" class="btn btn-danger" id="delete" [disabled]="selectedRows.length == 0" (click)="deleteRow()">Delete</button>
-        <button type="button" class="btn btn-info" id="cleargrid" (click)="openModal(template)">Cancel</button>
-        </div>
-      </div>
-    </div>
-  </div>
+  <app-csv-table #CsvTableComponent [(tableContent)]="tableContent"> </app-csv-table>
   <hr />
- 
-  <ng-template #template>
-    <div class="modal-body text-center">
-      <p>Do you want to remove all the mapped data?</p>
-      <button type="button" class="btn btn-default" (click)="confirm()" >Yes</button>
-      <button type="button" class="btn btn-primary" (click)="decline()" >No</button>
-    </div>
-  </ng-template>
+
 </div>

@@ -1,0 +1,25 @@
+<div style="margin-top:10px" *ngIf="tableContent.length > 0">
+  <div class="row">
+    <div class="col-lg-12 col-md-12">
+      <ng2-smart-table [settings]="settings" [source]="source" (userRowSelect)="onUserRowSelect($event)"></ng2-smart-table>
+    </div>
+
+  </div>
+  <div class="row">
+    <div class="col-lg-12 col-md-12">
+      <div class="pull-right">
+        <button type="button" class="btn btn-success" id="submit">Submit</button>
+        <button type="button" class="btn btn-danger" id="delete" [disabled]="selectedRows.length == 0" (click)="deleteRow()">Delete</button>
+        <button type="button" class="btn btn-info" id="cleargrid" (click)="openModal(template)">Cancel</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<ng-template #template>
+  <div class="modal-body text-center">
+    <p>Do you want to remove all the mapped data?</p>
+    <button type="button" class="btn btn-default" (click)="confirm()">Yes</button>
+    <button type="button" class="btn btn-primary" (click)="decline()">No</button>
+  </div>
+</ng-template>

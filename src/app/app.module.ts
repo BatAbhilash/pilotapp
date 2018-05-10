@@ -9,7 +9,7 @@ import { HttpClientModule } from '@angular/common/http';
 // component imports
 import { AppComponent } from './app.component';
 import { CslDropdownsComponent } from './csl-dropdowns/csl-dropdowns.component';
-
+import { CsvTableComponent } from './csv-table/csv-table.component';
 // module imports
 import { ToasterModule, ToasterService } from 'angular5-toaster';
 import { ModalModule } from 'ngx-bootstrap';
@@ -19,6 +19,7 @@ import { LoadingModule } from 'ngx-loading';
 
 // service imports
 import { CslService } from './csl.service';
+
 
 const routes: Routes = [
   { path: 'csl', component: CslDropdownsComponent },
@@ -30,6 +31,7 @@ const routes: Routes = [
   declarations: [
     AppComponent,
     CslDropdownsComponent,
+    CsvTableComponent,
   ],
   imports: [
     BrowserModule,
