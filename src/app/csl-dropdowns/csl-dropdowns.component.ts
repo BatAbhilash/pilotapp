@@ -57,6 +57,7 @@ export class CslDropdownsComponent implements OnInit {
 
   ngOnInit() {
     this.getLocationData();
+
     this.dropdownLocationSettings = {
       singleSelection: true,
       idField: 'Name',
@@ -106,19 +107,20 @@ export class CslDropdownsComponent implements OnInit {
       enableCheckAll: false
     };
 
-    this.job = [
-      { JobId: 1, JobName: 'Warehousing and Inventory Control', PersonId: 2, RoleId: [4, 1] },
-      { JobId: 2, JobName: 'Materials planning and scheduling', PersonId: 3, RoleId: [4, 3] },
-      { JobId: 3, JobName: 'Project Management Clinical', PersonId: 4, RoleId: [1, 2] },
-      { JobId: 5, JobName: 'Purchasing', PersonId: 7, RoleId: [4] },
-      { JobId: 6, JobName: 'Operations Support', PersonId: 10, RoleId: [3] },
-      { JobId: 7, JobName: 'Clinical Development/Operations (non-MD)', PersonId: 1, RoleId: [1] },
-      { JobId: 8, JobName: 'Tax', PersonId: 1, RoleId: [2] },
-    ];
+    // this.job = [
+    //   { JobId: 1, JobName: 'Warehousing and Inventory Control', PersonId: 2, RoleId: [4, 1] },
+    //   { JobId: 2, JobName: 'Materials planning and scheduling', PersonId: 3, RoleId: [4, 3] },
+    //   { JobId: 3, JobName: 'Project Management Clinical', PersonId: 4, RoleId: [1, 2] },
+    //   { JobId: 5, JobName: 'Purchasing', PersonId: 7, RoleId: [4] },
+    //   { JobId: 6, JobName: 'Operations Support', PersonId: 10, RoleId: [3] },
+    //   { JobId: 7, JobName: 'Clinical Development/Operations (non-MD)', PersonId: 1, RoleId: [1] },
+    //   { JobId: 8, JobName: 'Tax', PersonId: 1, RoleId: [2] },
+    // ];
 
+    this.getJobData();
     this.dropdownJobSettings = {
       singleSelection: false,
-      idField: 'JobId',
+      idField: 'JobName',
       textField: 'JobName',
       selectAllText: 'Select All',
       unSelectAllText: 'UnSelect All',
@@ -254,7 +256,6 @@ export class CslDropdownsComponent implements OnInit {
     self.response.Role = _.uniq(self.response.Role);
     const roleNames = [];
     const tableData = {};
-
     tableData['location'] = self.response.Location['Name'];
     tableData['supervisors'] = self.response.Supervisors['Name'];
     tableData['head'] = self.response.Head['Name'];
@@ -327,62 +328,76 @@ export class CslDropdownsComponent implements OnInit {
     console.log(self.persons);
   }
 
-  onCheckboxSelect(item, category) {
-    console.log(item);
+  getJobData() {
     const self = this;
-    let temp = [];
-    switch (category) {
-      case 'Location':
-        self.onDeselct({}, 'Supervisors');
-        temp = _.filter(self.location, x => x['Name'] === item);
-        self.response.Location = temp[0];
-        self.supervisors = temp[0]['Supervisors'];
-        break;
+    const requestObj = {
+      'token': localStorage.getItem('token')
+    };
 
-      case 'Supervisors':
+    self.cslService.getCSLData('Jobs', requestObj)
+      .subscribe(obj => {
+        self.job = obj[0]['Jobs'];
+      });
+  }
+
+
+onCheckboxSelect(item, category) {
+  console.log(item);
+  const self = this;
+  let temp = [];
+  switch (category) {
+    case 'Location':
+      self.onDeselct({}, 'Supervisors');
+      temp = _.filter(self.location, x => x['Name'] === item);
+      self.response.Location = temp[0];
+      self.supervisors = temp[0]['Supervisors'];
+      break;
+
+    case 'Supervisors':
       self.onDeselct({}, 'Head');
       temp = _.filter(self.supervisors, x => x['Name'] === item);
       self.response.Supervisors = temp[0];
       self.headData = temp[0].TeamLeads;
-        break;
+      break;
 
-      case 'Head':
-        self.onDeselct({}, 'Person');
-        temp = _.filter(self.headData, x => x['Name'] === item);
-        self.response.Head = temp[0];
-        self.persons = temp[0]['Persons'];
-        self.selectedPersons = temp[0]['Persons'];
-        self.response.Person = temp[0]['Persons'];
-        break;
+    case 'Head':
+      self.onDeselct({}, 'Person');
+      temp = _.filter(self.headData, x => x['Name'] === item);
+      self.response.Head = temp[0];
+      self.persons = temp[0]['Persons'];
+      self.selectedPersons = temp[0]['Persons'];
+      self.response.Person = temp[0]['Persons'];
+      break;
 
-      case 'Person':
-        self.onDeselct({}, 'Job');
-        self.onDeselct({}, 'Role');
-          self.response.Person.push(item);
-        break;
+    case 'Person':
+      self.onDeselct({}, 'Job');
+      self.onDeselct({}, 'Role');
+      self.response.Person.push(item);
+      break;
 
-      case 'Job':
-        self.response.Job.push(item);
-        break;
+    case 'Job':
+      temp = _.filter(self.job, x => x['JobName'] === item);
+      self.response.Job.push(temp[0]);
+      break;
 
-      case 'Role':
-        self.selectedJobs = [];
-        self.response.Job = [];
-        self.response.Role.push(item);
-        const selectedObj = _.find(self.roles, function (obj) {
-          return obj.RoleId === item.RoleId;
-        });
-        self.selectedBackups = _.filter(self.backup, function (obj) {
-          if (_.includes(selectedObj.backupsIds, obj.id)) {
-            self.response.Backup.push(obj);
-            return obj;
-          }
-        });
-        break;
+    case 'Role':
+      self.selectedJobs = [];
+      self.response.Job = [];
+      self.response.Role.push(item);
+      const selectedObj = _.find(self.roles, function (obj) {
+        return obj.RoleId === item.RoleId;
+      });
+      self.selectedBackups = _.filter(self.backup, function (obj) {
+        if (_.includes(selectedObj.backupsIds, obj.id)) {
+          self.response.Backup.push(obj);
+          return obj;
+        }
+      });
+      break;
 
-      case 'Backup':
-        self.response.Backup.push(item);
-        break;
-    }
+    case 'Backup':
+      self.response.Backup.push(item);
+      break;
   }
+}
 }
