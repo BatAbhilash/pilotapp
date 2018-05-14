@@ -43,7 +43,7 @@ export class CslDropdownsComponent implements OnInit {
     Location: {},
     Supervisors: {},
     Head: {},
-    Person: [],
+    Person: {},
     Job: [],
     Role: [],
     Backup: []
@@ -96,8 +96,8 @@ export class CslDropdownsComponent implements OnInit {
 
 
     this.dropdownPersonSettings = {
-      singleSelection: false,
-      idField: 'PersonId',
+      singleSelection: true,
+      idField: 'Name',
       textField: 'Name',
       selectAllText: 'Select All',
       unSelectAllText: 'UnSelect All',
@@ -106,16 +106,6 @@ export class CslDropdownsComponent implements OnInit {
       closeDropDownOnSelection: true,
       enableCheckAll: false
     };
-
-    // this.job = [
-    //   { JobId: 1, JobName: 'Warehousing and Inventory Control', PersonId: 2, RoleId: [4, 1] },
-    //   { JobId: 2, JobName: 'Materials planning and scheduling', PersonId: 3, RoleId: [4, 3] },
-    //   { JobId: 3, JobName: 'Project Management Clinical', PersonId: 4, RoleId: [1, 2] },
-    //   { JobId: 5, JobName: 'Purchasing', PersonId: 7, RoleId: [4] },
-    //   { JobId: 6, JobName: 'Operations Support', PersonId: 10, RoleId: [3] },
-    //   { JobId: 7, JobName: 'Clinical Development/Operations (non-MD)', PersonId: 1, RoleId: [1] },
-    //   { JobId: 8, JobName: 'Tax', PersonId: 1, RoleId: [2] },
-    // ];
 
     this.getJobData();
     this.dropdownJobSettings = {
@@ -168,25 +158,6 @@ export class CslDropdownsComponent implements OnInit {
 
   }
 
-  onHeadSelect(item: any) {
-    const self = this;
-    self.response.Head = item;
-    const teamLeadName = {
-      'teamLeadName': item['Name'],
-      'personName': '',
-      'token': localStorage.getItem('token')
-    };
-
-    this.cslService.getCSLData('Persons', teamLeadName)
-      .subscribe(obj => {
-        self.persons = obj;
-        self.selectedPersons = obj;
-        self.response.Person = obj;
-      });
-
-    this.persons = [];
-  }
-
   onDeselct(item: any, category: any) {
     const self = this;
     if (category === 'Location') {
@@ -194,7 +165,7 @@ export class CslDropdownsComponent implements OnInit {
     } else if (category === 'Supervisors') {
       self.response.Head = {};
       self.response.Supervisors = {};
-      self.response.Person = [];
+      self.response.Person = {};
       self.response.Job = [];
       self.response.Role = [];
       self.response.Backup = [];
@@ -205,7 +176,7 @@ export class CslDropdownsComponent implements OnInit {
       self.selectedHead = [];
     } else if (category === 'Head') {
       self.response.Head = {};
-      self.response.Person = [];
+      self.response.Person = {};
       self.response.Job = [];
       self.response.Role = [];
       self.response.Backup = [];
@@ -214,9 +185,7 @@ export class CslDropdownsComponent implements OnInit {
       self.selectedBackups = [];
       self.selectedHead = [];
     } else if (category === 'Person') {
-      // self.response.Person = {};
-      _.pullAll(self.response.Person, item);
-      console.log(self.response.Person);
+      self.response.Person = {};
       self.response.Job = [];
       self.response.Role = [];
       self.response.Backup = [];
@@ -240,10 +209,13 @@ export class CslDropdownsComponent implements OnInit {
   }
 
   getLocationData() {
-    this.cslService
+    const self = this;
+    self.cslService
       .getCSLData('Location').subscribe(
       obj => {
-        this.location = obj;
+        self.location = obj['Locations'];
+        self.supervisors = obj['Supervisors'];
+        self.headData = obj['TeamLeads'];
       }, err => {
         console.log(err);
       });
@@ -269,15 +241,17 @@ export class CslDropdownsComponent implements OnInit {
     tableData['backup'] = (self.response.Backup.length > 0) ?
       self.response.Backup.map(x => x.FirstName).join(', ') : 'NA';
 
-    if (self.response.Person.length > 0) {
-      _.forEach(self.response.Person, function (obj) {
-        const o = _.cloneDeep(tableData);
-        o['name'] = obj.Name;
-        self.tableContent.push(o);
-      });
-    }
-    this.clearData();
+      tableData['name'] = self.response.Person['Name'];
+    // if (self.response.Person.length > 0) {
+    //   _.forEach(self.response.Person, function (obj) {
+    //     const o = _.cloneDeep(tableData);
+    //     o['name'] = obj.Name;
+    //     self.tableContent.push(o);
+    //   });
+    // }
+    self.tableContent.push(tableData);
     this.csvTableComponent.addRow();
+    this.clearData();
   }
 
   clearData() {
@@ -286,7 +260,7 @@ export class CslDropdownsComponent implements OnInit {
       Location: {},
       Head: {},
       Supervisors: {},
-      Person: [],
+      Person: {},
       Job: [],
       Role: [],
       Backup: []
@@ -302,30 +276,23 @@ export class CslDropdownsComponent implements OnInit {
 
   onFilterChange($event, category) {
     const self = this;
-
     if (category === 'person') {
-      // this.persons = this.selectedPersons;
-      if ($event === '' || !this.response.Head['Name']) {
+      if ($event === '') {
         this.persons = [];
         return;
       }
 
       const teamLeadName = {
-        'LocationName': self.response.Location['Name'],
-        'SupervisorName': self.response.Supervisors['Name'],
-        'TeamLeadName': self.response.Head['Name'],
-        'personName': $event,
+        'PersonName': $event,
         'token': localStorage.getItem('token')
       };
 
       this.cslService.getCSLData('Persons', teamLeadName)
         .subscribe(obj => {
-          console.log(obj);
           self.persons = obj;
         });
     }
     self.persons = _.uniq(self.persons);
-    console.log(self.persons);
   }
 
   getJobData() {
@@ -350,29 +317,37 @@ onCheckboxSelect(item, category) {
       self.onDeselct({}, 'Supervisors');
       temp = _.filter(self.location, x => x['Name'] === item);
       self.response.Location = temp[0];
-      self.supervisors = temp[0]['Supervisors'];
       break;
 
     case 'Supervisors':
       self.onDeselct({}, 'Head');
       temp = _.filter(self.supervisors, x => x['Name'] === item);
       self.response.Supervisors = temp[0];
-      self.headData = temp[0].TeamLeads;
+
+      const teamLeadName = {
+        'supervisorName': self.response.Supervisors['Name'],
+        'LocationName': self.response.Location['Name'],
+        'token': localStorage.getItem('token')
+      };
+      this.cslService.getCSLData('Persons', teamLeadName)
+        .subscribe(obj => {
+          self.persons = obj;
+          // self.selectedPersons = obj;
+          // self.response.Person = obj;
+        });
       break;
 
     case 'Head':
       self.onDeselct({}, 'Person');
       temp = _.filter(self.headData, x => x['Name'] === item);
       self.response.Head = temp[0];
-      self.persons = temp[0]['Persons'];
-      self.selectedPersons = temp[0]['Persons'];
-      self.response.Person = temp[0]['Persons'];
-      break;
+     break;
 
     case 'Person':
       self.onDeselct({}, 'Job');
       self.onDeselct({}, 'Role');
-      self.response.Person.push(item);
+      temp = _.filter(self.persons, x => x['Name'] === item);
+      self.response.Person = temp[0];
       break;
 
     case 'Job':

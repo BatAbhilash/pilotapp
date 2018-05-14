@@ -69,6 +69,7 @@ export class CsvTableComponent implements OnInit {
 
   ngOnInit() {
     this.source = new LocalDataSource(this.tableContent);
+    console.log(this.tableContent);
   }
 
   openModal(template: TemplateRef<any>) {
@@ -123,6 +124,7 @@ export class CsvTableComponent implements OnInit {
   }
 
   addRow() {
+    console.log(this.tableContent);
     this.toasterService.pop('success', 'Success!', 'Record Added Successfully!');
     this.source = new LocalDataSource(this.tableContent);
     this.source.refresh();
