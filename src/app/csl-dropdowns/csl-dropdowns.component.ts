@@ -107,7 +107,6 @@ export class CslDropdownsComponent implements OnInit {
       enableCheckAll: false
     };
 
-    this.getJobData();
     this.dropdownJobSettings = {
       singleSelection: false,
       idField: 'JobName',
@@ -120,16 +119,9 @@ export class CslDropdownsComponent implements OnInit {
       enableCheckAll: false
     };
 
-    this.roles = [
-      { RoleId: 1, RoleName: 'AHP/HTC/NBA', backupsIds: [2] },
-      { RoleId: 2, RoleName: 'Catalog Administrator', backupsIds: [1] },
-      { RoleId: 3, RoleName: 'Business Technology Representative', backupsIds: [3] },
-      { RoleId: 4, RoleName: 'Sr. Manager/Manager', backupsIds: [4] },
-    ];
-
     this.dropdownRoleSettings = {
       singleSelection: false,
-      idField: 'RoleId',
+      idField: 'RoleName',
       textField: 'RoleName',
       selectAllText: 'Select All',
       unSelectAllText: 'UnSelect All',
@@ -138,17 +130,10 @@ export class CslDropdownsComponent implements OnInit {
       enableCheckAll: false
     };
 
-    this.backup = [
-      { id: 1, Email: 'milind.kolte@kanakasoftware.com', FirstName: 'Anita Jivani', LastName: 'Kolte' },
-      { id: 2, Email: 'praneet.nadkar@kanakasoftware.com', FirstName: 'Dax Howard', LastName: 'Nadkar' },
-      { id: 3, Email: 'praneet.nadkar@kanakasoftware.com', FirstName: 'Vivek Maiya', LastName: 'Nadkar' },
-      { id: 4, Email: 'praneet.nadkar@kanakasoftware.com', FirstName: 'Jennifer Koger', LastName: 'Nadkar' }
-    ];
-
     this.dropdownBackupSettings = {
       singleSelection: false,
-      idField: 'id',
-      textField: 'FirstName',
+      idField: 'Name',
+      textField: 'Name',
       selectAllText: 'Select All',
       unSelectAllText: 'UnSelect All',
       itemsShowLimit: 3,
@@ -156,56 +141,6 @@ export class CslDropdownsComponent implements OnInit {
       enableCheckAll: false
     };
 
-  }
-
-  onDeselct(item: any, category: any) {
-    const self = this;
-    if (category === 'Location') {
-      self.clearData();
-    } else if (category === 'Supervisors') {
-      self.response.Head = {};
-      self.response.Supervisors = {};
-      self.response.Person = {};
-      self.response.Job = [];
-      self.response.Role = [];
-      self.response.Backup = [];
-      self.selectedSupervisors = [];
-      self.selectedJobs = [];
-      self.selectedRoles = [];
-      self.selectedBackups = [];
-      self.selectedHead = [];
-    } else if (category === 'Head') {
-      self.response.Head = {};
-      self.response.Person = {};
-      self.response.Job = [];
-      self.response.Role = [];
-      self.response.Backup = [];
-      self.selectedJobs = [];
-      self.selectedRoles = [];
-      self.selectedBackups = [];
-      self.selectedHead = [];
-    } else if (category === 'Person') {
-      self.response.Person = {};
-      self.response.Job = [];
-      self.response.Role = [];
-      self.response.Backup = [];
-      self.selectedJobs = [];
-      self.selectedRoles = [];
-      self.selectedBackups = [];
-    } else if (category === 'Job') {
-      _.pullAll(self.response.Job, item);
-    } else if (category === 'Role') {
-      _.pullAll(self.response.Role, item);
-      self.selectedBackups = [];
-    } else {
-      if (self.response.Backup.length > 0) {
-        self.selectedRoles = _.filter(self.selectedRoles, function (obj) {
-          return obj.id !== item.id;
-        });
-      } else {
-        self.response.Backup = [];
-      }
-    }
   }
 
   getLocationData() {
@@ -239,9 +174,9 @@ export class CslDropdownsComponent implements OnInit {
       self.response.Role.map(x => x.RoleName).join(', ') : 'NA';
 
     tableData['backup'] = (self.response.Backup.length > 0) ?
-      self.response.Backup.map(x => x.FirstName).join(', ') : 'NA';
+      self.response.Backup.map(x => x.Name).join(', ') : 'NA';
 
-      tableData['name'] = self.response.Person['Name'];
+    tableData['name'] = self.response.Person['Name'];
     // if (self.response.Person.length > 0) {
     //   _.forEach(self.response.Person, function (obj) {
     //     const o = _.cloneDeep(tableData);
@@ -249,130 +184,287 @@ export class CslDropdownsComponent implements OnInit {
     //     self.tableContent.push(o);
     //   });
     // }
+    this.clearData();
     self.tableContent.push(tableData);
     this.csvTableComponent.addRow();
-    this.clearData();
   }
 
   clearData() {
     const self = this;
-    self.response = {
-      Location: {},
-      Head: {},
-      Supervisors: {},
-      Person: {},
-      Job: [],
-      Role: [],
-      Backup: []
-    };
-    self.selectedHead = [];
-    self.selectedLocation = [];
+    self.response.Person = {};
+    self.response.Job = [];
+    self.response.Role = [];
+    self.response.Backup = [];
+    // self.persons = [];
+    // self.selectedHead = [];
+    // self.selectedLocation = [];
+    // self.selectedPersons = [];
+    // self.selectedSupervisors = [];
+    self.roles = [];
+    self.backup = [];
+    self.job = [];
     self.selectedPersons = [];
     self.selectedJobs = [];
     self.selectedRoles = [];
     self.selectedBackups = [];
-    self.selectedSupervisors = [];
   }
 
   onFilterChange($event, category) {
     const self = this;
     if (category === 'person') {
       if ($event === '') {
-        this.persons = [];
+        self.persons = [];
         return;
       }
 
-      const teamLeadName = {
+      const requestObj = {
+        'supervisorName': self.response.Supervisors['Name'],
+        'LocationName': self.response.Location['Name'],
         'PersonName': $event,
         'token': localStorage.getItem('token')
       };
 
-      this.cslService.getCSLData('Persons', teamLeadName)
+      self.cslService.getCSLData('Persons', requestObj)
         .subscribe(obj => {
           self.persons = obj;
         });
-    }
-    self.persons = _.uniq(self.persons);
-  }
+    } else if (category === 'Job') {
+      if ($event === '') {
+        self.job = [];
+        return;
+      }
 
-  getJobData() {
-    const self = this;
-    const requestObj = {
-      'token': localStorage.getItem('token')
-    };
-
-    self.cslService.getCSLData('Jobs', requestObj)
-      .subscribe(obj => {
-        self.job = obj[0]['Jobs'];
-      });
-  }
-
-
-onCheckboxSelect(item, category) {
-  console.log(item);
-  const self = this;
-  let temp = [];
-  switch (category) {
-    case 'Location':
-      self.onDeselct({}, 'Supervisors');
-      temp = _.filter(self.location, x => x['Name'] === item);
-      self.response.Location = temp[0];
-      break;
-
-    case 'Supervisors':
-      self.onDeselct({}, 'Head');
-      temp = _.filter(self.supervisors, x => x['Name'] === item);
-      self.response.Supervisors = temp[0];
-
-      const teamLeadName = {
-        'supervisorName': self.response.Supervisors['Name'],
-        'LocationName': self.response.Location['Name'],
+      const requestObj = {
+        'JobName': $event,
         'token': localStorage.getItem('token')
       };
-      this.cslService.getCSLData('Persons', teamLeadName)
-        .subscribe(obj => {
-          self.persons = obj;
-          // self.selectedPersons = obj;
-          // self.response.Person = obj;
-        });
-      break;
 
-    case 'Head':
-      self.onDeselct({}, 'Person');
-      temp = _.filter(self.headData, x => x['Name'] === item);
-      self.response.Head = temp[0];
-     break;
-
-    case 'Person':
-      self.onDeselct({}, 'Job');
-      self.onDeselct({}, 'Role');
-      temp = _.filter(self.persons, x => x['Name'] === item);
-      self.response.Person = temp[0];
-      break;
-
-    case 'Job':
-      temp = _.filter(self.job, x => x['JobName'] === item);
-      self.response.Job.push(temp[0]);
-      break;
-
-    case 'Role':
-      self.selectedJobs = [];
-      self.response.Job = [];
-      self.response.Role.push(item);
-      const selectedObj = _.find(self.roles, function (obj) {
-        return obj.RoleId === item.RoleId;
+      self.cslService.getCSLData('GetAllJobs', requestObj)
+      .subscribe(obj => {
+        self.job = obj;
       });
-      self.selectedBackups = _.filter(self.backup, function (obj) {
-        if (_.includes(selectedObj.backupsIds, obj.id)) {
-          self.response.Backup.push(obj);
-          return obj;
-        }
-      });
-      break;
 
-    case 'Backup':
-      self.response.Backup.push(item);
-      break;
+    } else if (category === 'Role') {
+      if ($event === '') {
+        self.roles = [];
+        return;
+      }
+
+      const requestObj = {
+        'RoleName': $event,
+        'token': localStorage.getItem('token')
+      };
+
+      self.cslService.getCSLData('GetAllRoles', requestObj)
+      .subscribe(obj => {
+        self.roles = obj;
+      });
+    } else if (category === 'Backup') {
+      if ($event === '') {
+        self.roles = [];
+        return;
+      }
+
+      const requestObj = {
+        'BackupName': $event,
+        'token': localStorage.getItem('token')
+      };
+
+      self.cslService.getCSLData('GetAllBackups', requestObj)
+      .subscribe(obj => {
+        self.backup = obj;
+      });
+    }
+
   }
-}
-}
+
+  // getJobData() {
+  //   const self = this;
+  //   const requestObj = {
+  //     'token': localStorage.getItem('token')
+  //   };
+
+  //   self.cslService.getCSLData('GetAllJobs', requestObj)
+  //     .subscribe(obj => {
+  //       self.job = obj[0]['Jobs'];
+  //     });
+  // }
+
+
+  onCheckboxSelect(item, category) {
+
+    const self = this;
+    let temp = [];
+    switch (category) {
+      case 'Location':
+        self.onDeselct({}, 'Supervisors');
+        temp = _.find(self.location, x => x['Name'] === item);
+        self.response.Location = temp;
+        break;
+
+      case 'Supervisors':
+        self.onDeselct({}, 'Head');
+        temp = _.find(self.supervisors, x => x['Name'] === item);
+        self.response.Supervisors = temp;
+
+        const teamLeadName = {
+          'supervisorName': self.response.Supervisors['Name'],
+          'LocationName': self.response.Location['Name'],
+          'token': localStorage.getItem('token')
+        };
+        this.cslService.getCSLData('Persons', teamLeadName)
+          .subscribe(obj => {
+            self.persons = obj;
+            // self.selectedPersons = obj;
+            // self.response.Person = obj;
+          });
+        break;
+
+      case 'Head':
+        self.onDeselct({}, 'Person');
+        temp = _.find(self.headData, x => x['Name'] === item);
+        self.response.Head = temp;
+        break;
+
+      case 'Person':
+        self.onDeselct({}, 'Job');
+        self.onDeselct({}, 'Role');
+        temp = _.find(self.persons, x => x['Name'] === item);
+        self.response.Person = temp;
+
+        const requestObj = {
+          'supervisorName': self.response.Supervisors['Name'],
+          'LocationName': self.response.Location['Name'],
+          'PersonName': self.response.Person['Name'],
+          'token': localStorage.getItem('token')
+        };
+
+        self.cslService.getCSLData('Jobs', requestObj)
+          .subscribe(obj => {
+            if (obj.length > 0) {
+            if (obj[0].hasOwnProperty('Jobs')) {
+            self.job = obj[0]['Jobs'];
+            self.response.Job = obj[0]['Jobs'];
+            self.selectedJobs = obj[0]['Jobs'];
+            }
+            if (obj[0].hasOwnProperty('Roles')) {
+            self.response.Role = obj[0]['Roles'];
+            self.roles = obj[0]['Roles'];
+            self.selectedRoles = obj[0]['Roles'];
+            }
+          }
+          });
+        break;
+
+      case 'Job':
+        temp = _.find(self.job, x => x['JobName'] === item);
+        self.response.Job.push(temp);
+
+        const request = {
+          'JobName': item,
+          'token': localStorage.getItem('token')
+        };
+
+        self.cslService.getCSLData('GetRolesByJob', request)
+          .subscribe(obj => {
+            self.roles = obj['JobRoles'];
+            self.response.Role = obj['JobRoles'];
+            self.selectedRoles = obj['JobRoles'];
+          });
+        break;
+
+      case 'Role':
+        temp = _.find(self.roles, x =>  x.RoleName === item);
+        self.response.Role.push(temp);
+
+
+        const requestObject = {
+          'RoleName': item,
+          'token': localStorage.getItem('token')
+        };
+
+        self.cslService.getCSLData('GetBackupsByRole', requestObject)
+          .subscribe(obj => {
+            console.log(obj);
+            self.backup = obj['Backups'];
+            self.response.Backup = obj['Backups'];
+            self.selectedBackups = obj['Backups'];
+          });
+        // self.selectedBackups = _.filter(self.backup, function (obj) {
+        //   if (_.includes(selectedObj.backupsIds, obj.id)) {
+        //     self.response.Backup.push(obj);
+        //     return obj;
+        //   }
+        // });
+        break;
+
+      case 'Backup':
+      temp = _.find(self.backup, x =>  x.Name === item);
+        self.response.Backup.push(temp);
+        break;
+    }
+  }
+
+
+  onDeselct(item: any, category: any) {
+    const self = this;
+    let temp;
+    if (category === 'Location') {
+      self.clearData();
+    } else if (category === 'Supervisors') {
+      self.response.Head = {};
+      self.response.Supervisors = {};
+      self.response.Person = {};
+      self.response.Job = [];
+      self.response.Role = [];
+      self.response.Backup = [];
+      self.selectedSupervisors = [];
+      self.selectedJobs = [];
+      self.selectedRoles = [];
+      self.selectedBackups = [];
+      self.selectedHead = [];
+    } else if (category === 'Head') {
+      self.response.Head = {};
+      self.response.Person = {};
+      self.response.Job = [];
+      self.response.Role = [];
+      self.response.Backup = [];
+      self.selectedJobs = [];
+      self.selectedRoles = [];
+      self.selectedBackups = [];
+      self.selectedHead = [];
+      self.selectedPersons = [];
+    } else if (category === 'Person') {
+      self.response.Person = {};
+      self.response.Job = [];
+      self.response.Role = [];
+      self.response.Backup = [];
+      self.selectedJobs = [];
+      self.selectedRoles = [];
+      self.selectedBackups = [];
+    } else if (category === 'Job') {
+      if (_.isEmpty(item)) {
+        self.response.Job = [];
+      } else {
+        temp = _.find(self.job, x => x['JobName'] === item);
+        _.pull(self.response.Job, temp);
+      }
+    } else if (category === 'Role') {
+      if (_.isEmpty(item)) {
+        self.response.Role = [];
+      } else {
+        temp = _.find(self.roles, x =>  x.RoleName === item);
+        _.pull(self.response.Role, temp);
+      }
+    } else if (category === 'Backup') {
+      if (_.isEmpty(item)) {
+        self.response.Backup = [];
+      } else {
+        temp = _.find(self.backup, x =>  x.Name === item);
+        _.pull(self.response.Backup, temp);
+      }
+    }
+  }
+
+
+} // end of component

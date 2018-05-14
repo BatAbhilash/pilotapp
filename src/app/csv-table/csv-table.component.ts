@@ -109,9 +109,10 @@ export class CsvTableComponent implements OnInit {
   }
 
   resetGrid() {
-    this.tableContent = [];
-    this.source = new LocalDataSource(this.tableContent);
-    this.source.refresh();
+    const self = this;
+    self.tableContent = [];
+    self.source = new LocalDataSource(self.tableContent);
+    self.source.refresh();
   }
 
   confirm(): void {
@@ -130,4 +131,12 @@ export class CsvTableComponent implements OnInit {
     this.source.refresh();
   }
 
+  submitData() {
+    const self = this;
+    _.pullAll(self.tableContent, self.tableContent);
+    self.source = new LocalDataSource(self.tableContent);
+    self.source.refresh();
+    this.selectedRows = [];
+    this.toasterService.pop('success', 'Success!', 'Records Saved Successfully!');
+  }
 }
