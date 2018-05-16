@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { CslService } from '../app/csl.service';
-import * as GlobalVars from './global-vars';
+// import * as GlobalVars from './global-vars';
 
 @Component({
   selector: 'app-root',
@@ -10,15 +10,19 @@ import * as GlobalVars from './global-vars';
 export class AppComponent implements OnInit {
   today = Date.now();
   cslService: CslService;
-  globalVars = GlobalVars;
-
+  // globalVars = GlobalVars;
+  loading = false;
   constructor(cslService: CslService) {
+    const self = this;
+    this.loading = true;
     this.cslService = cslService;
     this.cslService.getToken().subscribe(obj => {
+      self.loading = false;
       localStorage.setItem('token', obj.toString());
-     }, err => {
-       console.log(err);
-     });
+    }, err => {
+      self.loading = false;
+      console.log(err);
+    });
   }
 
   ngOnInit(): void {

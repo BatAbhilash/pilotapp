@@ -27,7 +27,9 @@
     </ul>
 
     <ul [style.maxHeight]="_settings.maxHeight+'px'">
-      <li *ngFor="let item of _data | ng2ListFilter:filter; let i = index;" (click)="onItemClick($event,item)" class="multiselect-item-checkbox">
+      <li *ngFor="let item of _data | ng2ListFilter:filter; let i = index;" (click)="onItemClick($event,item)" class="multiselect-item-checkbox" 
+      [style.background-color]="item.color"
+      >
         <input type="checkbox" [checked]="isSelected(item)" [disabled]="disabled || (isLimitSelectionReached() && !isSelected(item))"
         />
         <div>{{item.text}}</div>

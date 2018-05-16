@@ -1,6 +1,6 @@
 <div>
   <toaster-container></toaster-container>
-  <form (ngSubmit)="open(myForm)" #myForm="ngForm">
+  <form #myForm="ngForm">
     <div class="row" style="margin-top: 7%">
       <div class="col-md-3">
         <h3>Locations</h3>
@@ -96,8 +96,12 @@
       <div class="col-md-12">
         <div class="pull-right">
           <button type="button" class="btn btn-success" 
+          id="showBackup" (click)="getBackupByRoles()">Show Backups</button>
+
+          <button type="button" class="btn btn-success" 
            id="save" (click)="addRow()">Add Mapping</button>
         </div>
+
       </div>
     </div>
   </form>
@@ -105,3 +109,4 @@
   <hr />
 
 </div>
+<ngx-loading [show]="loading" [config]="{ backdropBorderRadius: '14px', fullScreenBackdrop: true }"></ngx-loading>

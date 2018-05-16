@@ -11,7 +11,8 @@ import { AppComponent } from './app.component';
 import { CslDropdownsComponent } from './csl-dropdowns/csl-dropdowns.component';
 import { CsvTableComponent } from './csv-table/csv-table.component';
 // module imports
-import { ToasterModule, ToasterService } from 'angular5-toaster';
+import {  ToasterModule, ToasterService } from 'angular5-toaster';
+// import { ToasterModule } from '../../node_modules/angular5-toaster/src/toaster.module';
 import { ModalModule } from 'ngx-bootstrap';
 import { Ng2SmartTableModule } from 'ng2-smart-table';
 import { NgMultiSelectDropDownModule } from './ng-multiselect-dropdown/src';

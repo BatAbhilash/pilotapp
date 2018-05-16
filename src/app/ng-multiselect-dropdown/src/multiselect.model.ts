@@ -1,14 +1,15 @@
 export class ListItem {
   id: String;
   text: String;
-
+  color: string;
   public constructor(source: any) {
     if (typeof source === 'string') {
-      this.id = this.text = source;
+      this.color = this.id = this.text = source;
     }
     if (typeof source === 'object') {
       this.id = source.id;
       this.text = source.text;
+      this.color = source.color;
     }
   }
 }

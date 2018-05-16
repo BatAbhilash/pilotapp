@@ -21,6 +21,7 @@ import { ClickOutsideDirective } from './click-outside.directive';
 import { ListFilterPipe } from './list-filter.pipe';
 
 export interface DropdownSettings {
+  color: string;
   singleSelection: Boolean;
   idField?: string;
   textField?: string;
@@ -58,6 +59,7 @@ export class MultiSelectComponent implements ControlValueAccessor {
   _placeholder: string = 'Select';
   filter: ListItem = new ListItem(this.data);
   defaultSettings: DropdownSettings = {
+    color: 'color',
     singleSelection: false,
     idField: 'id',
     textField: 'text',
@@ -110,7 +112,8 @@ export class MultiSelectComponent implements ControlValueAccessor {
             ? new ListItem(item)
             : new ListItem({
                 id: item[this._settings.idField],
-                text: item[this._settings.textField]
+                text: item[this._settings.textField],
+                color: item[this._settings.color]
               })
       );
     }
@@ -170,7 +173,8 @@ export class MultiSelectComponent implements ControlValueAccessor {
                 ? new ListItem(firstItem)
                 : new ListItem({
                     id: firstItem[this._settings.idField],
-                    text: firstItem[this._settings.textField]
+                    text: firstItem[this._settings.textField],
+                    color: firstItem[this._settings.color]
                   })
             ];
           }
@@ -184,7 +188,8 @@ export class MultiSelectComponent implements ControlValueAccessor {
               ? new ListItem(item)
               : new ListItem({
                   id: item[this._settings.idField],
-                  text: item[this._settings.textField]
+                  text: item[this._settings.textField],
+                  color: item[this._settings.color]
                 })
         );
         if (this._settings.limitSelection) {
@@ -289,6 +294,7 @@ export class MultiSelectComponent implements ControlValueAccessor {
     const obj = {};
     obj[this._settings.idField] = val.id;
     obj[this._settings.textField] = val.text;
+    obj[this._settings.color] = val.color;
     return obj;
   }
 
