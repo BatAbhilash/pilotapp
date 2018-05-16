@@ -3,6 +3,9 @@ import { NgForm } from '@angular/forms';
 import { Http, Response } from '@angular/http';
 import { NgbModal, ModalDismissReasons } from '@ng-bootstrap/ng-bootstrap';
 
+import { BsModalRef } from 'ngx-bootstrap/modal/bs-modal-ref.service';
+import { BsModalService } from 'ngx-bootstrap/modal';
+
 import { CsvTableComponent } from '../csv-table/csv-table.component';
 
 import { CslService } from '../../app/csl.service';
@@ -15,6 +18,7 @@ import * as _ from 'lodash';
 })
 export class CslDropdownsComponent implements OnInit {
   @ViewChild('CsvTableComponent') csvTableComponent: CsvTableComponent;
+  modalRef: BsModalRef;
   title = 'app';
   loading = false;
   flag = false;
@@ -53,7 +57,7 @@ export class CslDropdownsComponent implements OnInit {
   cslService: CslService;
 
 
-  constructor(cslService: CslService) {
+  constructor(cslService: CslService,  private modalService: BsModalService) {
     this.cslService = cslService;
   }
 
@@ -169,19 +173,8 @@ export class CslDropdownsComponent implements OnInit {
   }
 
 
-  addRow() {
+  addRow(template: TemplateRef<any>) {
     const self = this;
-    // if (self.originalMapping['LocationName'] === self.response.Location['Name']
-    //   && self.originalMapping['SupervisorName'] === self.response.Supervisors['Name']
-    //   && self.originalMapping['TeamLeadName'] === self.response.Head['Name']
-    //   && self.originalMapping['Name'] === self.response.Person['Name']
-    //   && _.isEqual(self.originalMapping['Jobs'], self.response.Job)
-    //   && _.isEqual(self.originalMapping['Roles'], self.response.Role)
-    // ) {
-    //   console.log('Mapping needs to be changed...!');
-    //   return;
-    // }
-
     this.flag = true;
     self.response.Role = _.uniq(self.response.Role);
     const roleNames = [];
@@ -190,6 +183,7 @@ export class CslDropdownsComponent implements OnInit {
     tableData['supervisors'] = self.response.Supervisors['Name'];
     tableData['head'] = self.response.Head['Name'];
     tableData['name'] = self.response.Person['Name'];
+    // tableData['status'] = 'Modified';
 
     // tableData['jobName'] = (self.response.Job.length > 0) ?
     //   self.response.Job.map(x => x.JobName).join(', ') : 'NA';
@@ -204,6 +198,7 @@ export class CslDropdownsComponent implements OnInit {
       _.forEach(self.response.Job, function (obj) {
         const o = _.cloneDeep(tableData);
         o['jobName'] = obj.JobName;
+        o['status'] = obj.Status;
         self.tableContent.push(o);
       });
     } else {
@@ -350,14 +345,14 @@ export class CslDropdownsComponent implements OnInit {
         if (obj.length > 0) {
           self.originalMapping = obj;
           if (obj[0].hasOwnProperty('Jobs')) {
-            self.job = obj[0]['Jobs'];
-            self.response.Job = obj[0]['Jobs'];
-            self.selectedJobs = obj[0]['Jobs'];
+            self.job = obj[0]['Jobs'].slice();
+            self.response.Job = obj[0]['Jobs'].slice();
+            self.selectedJobs = obj[0]['Jobs'].slice();
           }
           if (obj[0].hasOwnProperty('Roles')) {
-            self.response.Role = obj[0]['Roles'];
-            self.roles = obj[0]['Roles'];
-            self.selectedRoles = obj[0]['Roles'];
+            self.response.Role = obj[0]['Roles'].slice();
+            self.roles = obj[0]['Roles'].slice();
+            self.selectedRoles = obj[0]['Roles'].slice();
           }
           console.log(obj);
         }
@@ -380,9 +375,9 @@ export class CslDropdownsComponent implements OnInit {
     self.cslService.getCSLData('GetRolesByJob', request)
       .subscribe(obj => {
         console.log(obj);
-        self.roles = obj['JobRoles'];
-        self.response.Role = obj['JobRoles'];
-        self.selectedRoles = obj['JobRoles'];
+        self.roles = obj['JobRoles'].slice();
+        self.response.Role = obj['JobRoles'].slice();
+        self.selectedRoles = obj['JobRoles'].slice();
         self.loading = false;
       }, err => {
         self.loading = false;
@@ -402,9 +397,9 @@ export class CslDropdownsComponent implements OnInit {
       .subscribe(obj => {
         console.log(obj);
         self.loading = false;
-        self.backup = obj['Backups'];
-        self.response.Backup = obj['Backups'];
-        self.selectedBackups = obj['Backups'];
+        self.backup = obj['Backups'].slice();
+        self.response.Backup = obj['Backups'].slice();
+        self.selectedBackups = obj['Backups'].slice();
       });
   }
 
@@ -443,6 +438,7 @@ export class CslDropdownsComponent implements OnInit {
 
       case 'Job':
         temp = _.find(self.job, x => x['JobName'] === item);
+        temp['Status'] = 'New';
         self.response.Job.push(temp);
         self.GetRolesByJob();
         break;
@@ -509,8 +505,16 @@ export class CslDropdownsComponent implements OnInit {
       if (_.isEmpty(item)) {
         self.response.Job = [];
       } else {
-        temp = _.find(self.job, x => x['JobName'] === item);
-        _.pull(self.response.Job, temp);
+         temp = _.find(self.job, x => x['JobName'] === item);
+        if (temp['PersonName'] === null) {
+          _.pull(self.response.Job, temp);
+        } else {
+        _.each(self.job, x => {
+          if (x['JobName'] === item) {
+              x['Status'] = 'Deleted';
+          }
+        });
+      }
       }
     } else if (category === 'Role') {
       if (_.isEmpty(item)) {
@@ -529,5 +533,12 @@ export class CslDropdownsComponent implements OnInit {
     }
   }
 
+  dismissModal() {
+    this.modalRef.hide();
+  }
+
+  openModal(template: TemplateRef<any>) {
+    this.modalRef = this.modalService.show(template);
+  }
 
 } // end of component

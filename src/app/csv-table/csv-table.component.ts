@@ -54,6 +54,9 @@ export class CsvTableComponent implements OnInit {
       },
       backup: {
         title: 'Backup'
+      },
+      status: {
+        title: 'Status'
       }
     },
     defaultStyle: false,
