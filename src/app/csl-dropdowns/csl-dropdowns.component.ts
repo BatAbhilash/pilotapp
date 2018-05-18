@@ -418,14 +418,14 @@ export class CslDropdownsComponent implements OnInit {
         self.onDeselct({}, 'Head');
         temp = _.find(self.supervisors, x => x['Name'] === item);
         self.response.Supervisors = temp;
-        // self.getPersonData();
+         self.getPersonData();
         break;
 
       case 'Head':
         self.onDeselct({}, 'Person');
         temp = _.find(self.headData, x => x['Name'] === item);
         self.response.Head = temp;
-        self.getPersonData();
+        // self.getPersonData();
         break;
 
       case 'Person':
