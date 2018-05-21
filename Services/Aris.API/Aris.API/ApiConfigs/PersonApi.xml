@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<root>
+  <kinds>
+    <kind>OBJECT</kind>
+  </kinds>
+  <methodfilters>
+    <methodfilter>17658890-ea42-11e6-21fb-0acb454164fe</methodfilter>
+  </methodfilters>
+  <attribute>
+    <attributes>1</attributes>
+    <attributes>1243</attributes>
+    <attributes>3757</attributes>
+    <attributes>8de0d080-4df4-11e8-3e7a-0296de82851c</attributes>
+    <attributes>967c08d1-4f71-11e8-6a1e-d89d672712a8</attributes>
+    <attributes>75d2ad01-4f71-11e8-6a1e-d89d672712a8</attributes>
+  </attribute>
+  <attributeFilters>
+    <attfilter>8de0d080-4df4-11e8-3e7a-0296de82851c +</attfilter>
+  </attributeFilters>
+  <typeFilters>
+    <typeFilter>46</typeFilter>
+  </typeFilters>
+</root>
