@@ -7,6 +7,7 @@ import { BsModalRef } from 'ngx-bootstrap/modal/bs-modal-ref.service';
 import { BsModalService } from 'ngx-bootstrap/modal';
 
 import { CsvTableComponent } from '../csv-table/csv-table.component';
+import { ToasterModule, ToasterService } from 'angular5-toaster';
 
 import { CslService } from '../../app/csl.service';
 import * as _ from 'lodash';
@@ -18,6 +19,7 @@ import * as _ from 'lodash';
 })
 export class CslDropdownsComponent implements OnInit {
   @ViewChild('CsvTableComponent') csvTableComponent: CsvTableComponent;
+  toasterService: ToasterService;
   modalRef: BsModalRef;
   title = 'app';
   loading = false;
@@ -57,8 +59,9 @@ export class CslDropdownsComponent implements OnInit {
   cslService: CslService;
 
 
-  constructor(cslService: CslService,  private modalService: BsModalService) {
+  constructor(cslService: CslService,  private modalService: BsModalService, toasterService: ToasterService) {
     this.cslService = cslService;
+    this.toasterService = toasterService;
   }
 
   ngOnInit() {
@@ -175,6 +178,7 @@ export class CslDropdownsComponent implements OnInit {
 
   addRow(template: TemplateRef<any>) {
     const self = this;
+    let duplicateFlag = true;
     this.flag = true;
     self.response.Role = _.uniq(self.response.Role);
     const roleNames = [];
@@ -183,7 +187,7 @@ export class CslDropdownsComponent implements OnInit {
     tableData['supervisors'] = self.response.Supervisors['Name'];
     tableData['head'] = self.response.Head['Name'];
     tableData['name'] = self.response.Person['Name'];
-    // tableData['status'] = 'Modified';
+     tableData['status'] = 'New';
 
     // tableData['jobName'] = (self.response.Job.length > 0) ?
     //   self.response.Job.map(x => x.JobName).join(', ') : 'NA';
@@ -193,20 +197,29 @@ export class CslDropdownsComponent implements OnInit {
 
     tableData['backup'] = (self.response.Backup.length > 0) ?
       self.response.Backup.map(x => x.Name).join(', ') : 'NA';
-
     if (self.response.Job.length > 0) {
       _.forEach(self.response.Job, function (obj) {
         const o = _.cloneDeep(tableData);
         o['jobName'] = obj.JobName;
         o['status'] = obj.Status;
+        if (!(_.find(self.tableContent, o))) {
+          duplicateFlag = false;
         self.tableContent.push(o);
+        }
       });
     } else {
       tableData['jobName'] = 'NA';
+      if (!(_.find(self.tableContent, tableData))) {
+        duplicateFlag = false;
       self.tableContent.push(tableData);
+      }
     }
+    if (!duplicateFlag) {
     this.clearData();
     this.csvTableComponent.addRow();
+    } else {
+      this.toasterService.pop('error', 'Warning!', 'Can not add duplicate record!');
+    }
   }
 
   clearData() {
@@ -367,7 +380,7 @@ export class CslDropdownsComponent implements OnInit {
     self.loading = true;
     const item = _.last(self.response.Job);
     const request = {
-      'JobName': item['JobName'],
+      'JobId': item['JobId'],
       'Color': item['Color'],
       'token': localStorage.getItem('token')
     };
@@ -389,6 +402,7 @@ export class CslDropdownsComponent implements OnInit {
     self.loading = true;
     const item = _.last(self.response.Role);
     const requestObject = {
+      'RoleId': item['RoleId'],
       'RoleName': item['RoleName'],
       'token': localStorage.getItem('token')
     };
