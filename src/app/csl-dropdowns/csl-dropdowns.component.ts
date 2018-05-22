@@ -77,7 +77,7 @@ export class CslDropdownsComponent implements OnInit {
       allowSearchFilter: true,
       closeDropDownOnSelection: true,
       enableCheckAll: false,
-      color: 'Color'
+      color: 'Color',
     };
 
     this.dropdownHeadSettings = {
@@ -244,7 +244,11 @@ export class CslDropdownsComponent implements OnInit {
     switch (category) {
       case 'person':
         if ($event === '') {
-          self.persons = [];
+          if (_.isEmpty(self.response.Person)) {
+            self.persons = [];
+          } else {
+            self.persons = [self.response.Person];
+          }
           return;
         }
         self.loading = true;
@@ -265,7 +269,7 @@ export class CslDropdownsComponent implements OnInit {
         break;
       case 'Job':
         if ($event === '') {
-          self.job = [];
+          self.job = self.response.Job;
           return;
         }
         self.loading = true;
@@ -284,7 +288,7 @@ export class CslDropdownsComponent implements OnInit {
         break;
       case 'Role':
         if ($event === '') {
-          self.roles = [];
+          self.roles = self.response.Role;
           return;
         }
         self.loading = true;
@@ -303,7 +307,7 @@ export class CslDropdownsComponent implements OnInit {
         break;
       case 'Backup':
         if ($event === '') {
-          self.roles = [];
+          self.backup = self.response.Backup;
           return;
         }
         self.loading = true;

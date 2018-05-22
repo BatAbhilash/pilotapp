@@ -12,3 +12,9 @@ ul.multiselect-container.dropdown-menu {
     height: 200px;
     overflow: auto;
 }
+
+
+.backdrop {
+    cursor: help !important;
+}
+
