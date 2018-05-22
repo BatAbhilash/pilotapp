@@ -10,7 +10,7 @@
     <attributes>1,1243,3757,8de0d080-4df4-11e8-3e7a-0296de82851c,967c08d1-4f71-11e8-6a1e-d89d672712a8,75d2ad01-4f71-11e8-6a1e-d89d672712a8</attributes>
   </attribute>
   <attributeFilters>
-    <attfilter>8de0d080-4df4-11e8-3e7a-0296de82851c +</attfilter>
+    <attrfilter>8de0d080-4df4-11e8-3e7a-0296de82851c +</attrfilter>
   </attributeFilters>
   <typeFilters>
     <typeFilter>46</typeFilter>

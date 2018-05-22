@@ -1,4 +1,5 @@
 using Aris.API.ApiConfigs;
+using System.ComponentModel;
 using System.Linq;
 using System.Web;
 using System.Xml.Linq;
@@ -68,17 +69,38 @@ namespace Aris.API.Helpers
     static string GetUrlFromConfig(ApiTypeEnum apiTypeEnum)
     {
       var url = string.Empty;
+      var xmlPath = GetEnumDescription(apiTypeEnum);
+      var xml = XDocument.Load(HttpContext.Current.Server.MapPath(xmlPath)).ToString();
+      var query = GetQueryFromXml(xml);
 
       if (apiTypeEnum == ApiTypeEnum.Persons)
       {
-        var xml = XDocument.Load(HttpContext.Current.Server.MapPath("~/ApiConfigs/PersonApi.xml")).ToString();
-
-        var query = GetQueryFromXml(xml);
-
         url = BaseUrl + "databases" + DatabaseName + "find?" + query;
       }
 
       return url;
+    }
+
+    /// <summary>
+    /// Gets the description from the enum
+    /// </summary>
+    /// <param name="value"></param>
+    /// <returns></returns>
+    static string GetEnumDescription(ApiTypeEnum value)
+    {
+      var fi = value.GetType().GetField(value.ToString());
+
+      var attributes =
+          (DescriptionAttribute[])fi.GetCustomAttributes(
+          typeof(DescriptionAttribute),
+          false);
+
+      if (attributes != null && attributes.Length > 0)
+      {
+        return attributes[0].Description;
+      }
+
+      return value.ToString();
     }
   }
 }

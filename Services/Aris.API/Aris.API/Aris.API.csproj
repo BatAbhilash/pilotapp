@@ -253,6 +253,8 @@
     <Compile Include="Helpers\ColorHelper.cs" />
     <Compile Include="Models\AccountBindingModels.cs" />
     <Compile Include="Models\AccountViewModels.cs" />
+    <Compile Include="Models\Connections\CreateConnection.cs" />
+    <Compile Include="Models\Connections\Mapping.cs" />
     <Compile Include="Models\Data.cs" />
     <Compile Include="Models\IdentityModels.cs" />
     <Compile Include="Models\Job.cs" />
@@ -267,6 +269,7 @@
     <Compile Include="Models\RoleHelper\RolesByJob.cs" />
     <Compile Include="Models\Supervisor.cs" />
     <Compile Include="Models\TeamLead.cs" />
+    <Compile Include="Models\TokenModel.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Providers\ApplicationOAuthProvider.cs" />
     <Compile Include="Results\ChallengeResult.cs" />
