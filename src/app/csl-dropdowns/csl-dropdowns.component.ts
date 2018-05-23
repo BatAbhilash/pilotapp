@@ -77,6 +77,7 @@ export class CslDropdownsComponent implements OnInit {
       closeDropDownOnSelection: true,
       enableCheckAll: false,
       color: 'Color',
+      DisabledField: 'DisabledField'
     };
 
     this.dropdownHeadSettings = {
@@ -89,7 +90,8 @@ export class CslDropdownsComponent implements OnInit {
       allowSearchFilter: true,
       closeDropDownOnSelection: true,
       enableCheckAll: false,
-      color: 'Color'
+      color: 'Color',
+      DisabledField: 'DisabledField'
     };
 
     this.dropdownSupervisorsSettings = {
@@ -102,7 +104,8 @@ export class CslDropdownsComponent implements OnInit {
       allowSearchFilter: true,
       closeDropDownOnSelection: true,
       enableCheckAll: false,
-      color: 'Color'
+      color: 'Color',
+      DisabledField: 'DisabledField'
     };
 
 
@@ -116,7 +119,8 @@ export class CslDropdownsComponent implements OnInit {
       allowSearchFilter: true,
       closeDropDownOnSelection: true,
       enableCheckAll: false,
-      color: 'Color'
+      color: 'Color',
+      DisabledField: 'DisabledField'
     };
 
     this.dropdownJobSettings = {
@@ -129,7 +133,8 @@ export class CslDropdownsComponent implements OnInit {
       allowSearchFilter: true,
       closeDropDownOnSelection: true,
       enableCheckAll: false,
-      color: 'Color'
+      color: 'Color',
+      DisabledField: 'DisabledField'
     };
 
     this.dropdownRoleSettings = {
@@ -141,7 +146,8 @@ export class CslDropdownsComponent implements OnInit {
       itemsShowLimit: 3,
       allowSearchFilter: true,
       enableCheckAll: false,
-      color: 'Color'
+      color: 'Color',
+      DisabledField: 'DisabledField'
     };
 
     this.dropdownBackupSettings = {
@@ -153,7 +159,8 @@ export class CslDropdownsComponent implements OnInit {
       itemsShowLimit: 3,
       allowSearchFilter: true,
       enableCheckAll: false,
-      color: 'Color'
+      color: 'Color',
+      DisabledField: 'DisabledField'
     };
 
   }
@@ -396,7 +403,7 @@ export class CslDropdownsComponent implements OnInit {
       .subscribe(obj => {
         const temp = self.roles;
         _.forEach(obj['JobRoles'], function(o) {
-              // o['JobId'] = item['JobId'];
+              o['DisabledField'] = 'true';
               temp.push(o);
             });
               self.roles = temp.slice();
@@ -420,11 +427,15 @@ export class CslDropdownsComponent implements OnInit {
 
     self.cslService.getCSLData('GetBackupsByRole', requestObject)
       .subscribe(obj => {
-        console.log(obj);
         self.loading = false;
-        self.backup = obj['Backups'].slice();
-        self.response.Backup = obj['Backups'].slice();
-        self.selectedBackups = obj['Backups'].slice();
+        const temp = self.backup;
+        _.forEach(obj['Backups'], function(o) {
+              o['DisabledField'] = true;
+              temp.push(o);
+            });
+        self.backup = temp.slice();
+        self.response.Backup = temp.slice();
+        self.selectedBackups = temp.slice();
       });
   }
 

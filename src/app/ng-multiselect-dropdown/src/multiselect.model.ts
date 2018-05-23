@@ -2,6 +2,7 @@ export class ListItem {
   id: String;
   text: String;
   color: string;
+  DisabledField: string;
   public constructor(source: any) {
     if (typeof source === 'string') {
       this.color = this.id = this.text = source;
@@ -10,6 +11,7 @@ export class ListItem {
       this.id = source.id;
       this.text = source.text;
       this.color = source.color;
+      this.DisabledField = source.DisabledField;
     }
   }
 }
