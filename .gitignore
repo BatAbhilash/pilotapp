@@ -42,8 +42,9 @@ testem.log
 .DS_Store
 Thumbs.db
 
-/node_modules
+
 /.vscode
 /Services/Aris.API/.vs
 /.vs
-/Services/Aris.API/.vs/*
+/Services/Aris.API/Aris.API/bin/*
+/Services/Aris.API/Aris.API/obj/Debug
