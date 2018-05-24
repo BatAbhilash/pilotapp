@@ -276,6 +276,8 @@
     <Compile Include="Startup.cs" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="ApiConfigs\CreateApi.xml" />
+    <Content Include="ApiConfigs\LocationApi.xml" />
     <Content Include="ApiConfigs\PersonApi.xml" />
     <Content Include="App_Readme\Elmah.txt" />
     <Content Include="Areas\HelpPage\HelpPage.css" />

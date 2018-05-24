@@ -7,6 +7,8 @@ namespace Aris.API.ApiConfigs
     [Description("~/ApiConfigs/PersonApi.xml")]
     Locations,
     [Description("~/ApiConfigs/PersonApi.xml")]
-    Persons
+    Persons,
+    [Description("~/ApiConfigs/CreateApi.xml")]
+    CreateData
   }
 }

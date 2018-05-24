@@ -15,7 +15,7 @@ namespace Aris.API.Models.Connections
     public string occid { get; set; }
     public string guid { get; set; }
     public int type { get; set; }
-    public int symbol { get; set; }
+    public string symbol { get; set; }
     public List<Attribute> attributes { get; set; }
   }
 

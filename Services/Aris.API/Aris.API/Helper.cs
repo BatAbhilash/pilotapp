@@ -79,5 +79,25 @@ namespace Aris.API
         return default(T);
       }
     }
+
+    /// <summary>
+    /// Returns raw response in the form of a string
+    /// </summary>
+    /// <param name="token">The valid token to be passed to get the data</param>
+    /// <param name="url">The url to hit from where to get the data</param>
+    /// <returns>string response of the url hit</returns>
+    public static string GetRawResponse(string token, string url)
+    {
+      using (var client = GetClient(token))
+      {
+        var response = client.GetAsync(url).Result;
+        if (response.IsSuccessStatusCode)
+        {
+          return response.Content.ReadAsStringAsync().Result;
+        }
+
+        return string.Empty;
+      }
+    }
   }
 }
