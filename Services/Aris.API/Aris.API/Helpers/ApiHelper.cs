@@ -1,4 +1,5 @@
 using Aris.API.ApiConfigs;
+using System;
 using System.ComponentModel;
 using System.Linq;
 using System.Web;
@@ -22,6 +23,12 @@ namespace Aris.API.Helpers
     { get { return GetAppSettings("DatabaseName"); } }
 
     /// <summary>
+    /// Gets the model name from the config
+    /// </summary>
+    static string ModelId
+    { get { return GetAppSettings("ModelId"); } }
+
+    /// <summary>
     /// Gets the url from the config to get the token api path
     /// </summary>
     /// <returns></returns>
@@ -33,11 +40,12 @@ namespace Aris.API.Helpers
     /// <summary>
     /// This build a url path as per the api configs
     /// </summary>
-    /// <param name="apiTypeEnum"></param>
+    /// <param name="apiTypeEnum">API Type enums</param>
+    /// <param name="data">Data to be appended at the end of the url</param>
     /// <returns>Url path as per the configs</returns>
-    public static string UrlBuilder(ApiTypeEnum apiTypeEnum)
+    public static string UrlBuilder(ApiTypeEnum apiTypeEnum, object data = null)
     {
-      var url = GetUrlFromConfig(apiTypeEnum);
+      var url = GetUrlFromConfig(apiTypeEnum, data);
       return url;
     }
 
@@ -65,8 +73,9 @@ namespace Aris.API.Helpers
     /// Gets the url from the config file for each api type
     /// </summary>
     /// <param name="apiTypeEnum">Type of api to be fired</param>
+    /// <param name="data">Data, if any to be appended in it</param>
     /// <returns></returns>
-    static string GetUrlFromConfig(ApiTypeEnum apiTypeEnum)
+    static string GetUrlFromConfig(ApiTypeEnum apiTypeEnum, object data = null)
     {
       var url = string.Empty;
       var xmlPath = GetEnumDescription(apiTypeEnum);
@@ -76,6 +85,10 @@ namespace Aris.API.Helpers
       if (apiTypeEnum == ApiTypeEnum.Persons)
       {
         url = BaseUrl + "databases" + DatabaseName + "find?" + query;
+      }
+      else if (apiTypeEnum == ApiTypeEnum.CreateData)
+      {
+        url = BaseUrl + DatabaseName + "/" + ModelId + "/" + "&updateData=" + Convert.ToString(data) + "";
       }
 
       return url;

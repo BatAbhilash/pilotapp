@@ -324,13 +324,151 @@ namespace Aris.API.Controllers
 
     [HttpPost]
     [Route("api/Values/UpdateAris")]
-    public int UpdateAris([FromBody]string modelToSave)
+    public void UpdateAris([FromBody] TokenModel model, [FromBody]string modelToSave)
     {
-      var createConnection = new CreateConnection();
+      var token = model.Token;
+      var createConnections = new List<CreateConnection>();
       var mappingData = JsonConvert.DeserializeObject<List<Mapping>>(modelToSave);
       var createdItems = mappingData.Where(i => i.Status == "New").ToList();
       var deletedItems = mappingData.Where(i => i.Status == "Deleted").ToList();
-      return 1;
+
+      foreach (var createdItem in createdItems)
+      {
+        // model object for the person
+        var modelObject = new Modelobject
+        {
+          kind = "MODELOBJECT",
+          occid = "#1",
+          type = 46,
+          symbol = "2",
+          guid = createdItem.PersonId,
+          attributes = new List<Models.Connections.Attribute>
+          {
+            new Models.Connections.Attribute {  kind= "ATTRIBUTE", type=1,value= createdItem.Person }
+          }
+        };
+
+        foreach (var job in createdItem.Jobs)
+        {
+          if (!string.IsNullOrEmpty(job.JobId))
+          {
+            // model for job will be created
+            // create model object for the job here
+            var modelObjectJob = new Modelobject
+            {
+              kind = "MODELOBJECT",
+              occid = "#2",
+              type = 44,
+              symbol = "299",
+              guid = job.JobId,
+              attributes = new List<Models.Connections.Attribute>
+              {
+                new Models.Connections.Attribute{ kind= "ATTRIBUTE", type=1, value =  job.JobName }
+              }
+            };
+
+
+            var modelConnection = new Modelconnection { kind = "MODELCONNECTION", type = 395, source_occid = "#1", target_occid = "#2" };
+
+            var createdConnection = new CreateConnection
+            {
+              modelconnections = new List<Modelconnection> { modelConnection },
+            };
+
+            if (createdConnection.modelobjects == null)
+            {
+              createdConnection.modelobjects = new List<Modelobject>();
+            }
+
+            createdConnection.modelobjects.Add(modelObject);
+            createdConnection.modelobjects.Add(modelObjectJob);
+            createConnections.Add(createdConnection);
+
+          }
+        }
+
+        foreach (var role in createdItem.Roles)
+        {
+          // person to role model will be created here
+          if (!string.IsNullOrEmpty(role.RoleId))
+          {
+            // model for job will be created
+            // create model object for the job here
+            var modelObjectRole = new Modelobject
+            {
+              kind = "MODELOBJECT",
+              occid = "#2",
+              type = 78,
+              symbol = "80f76b81-35b8-11e3-51cf-c1dbe7832b20",
+              guid = role.RoleId,
+              attributes = new List<Models.Connections.Attribute>
+              {
+                new Models.Connections.Attribute{ kind= "ATTRIBUTE", type=1, value =  role.RoleName }
+              }
+            };
+
+
+            var modelConnection = new Modelconnection { kind = "MODELCONNECTION", type = 480, source_occid = "#1", target_occid = "#2" };
+
+            var createdConnection = new CreateConnection
+            {
+              modelconnections = new List<Modelconnection> { modelConnection },
+            };
+
+            if (createdConnection.modelobjects == null)
+            {
+              createdConnection.modelobjects = new List<Modelobject>();
+            }
+
+            createdConnection.modelobjects.Add(modelObject);
+            createdConnection.modelobjects.Add(modelObjectRole);
+            createConnections.Add(createdConnection);
+
+            // create the connection for the backup here
+            // model for job will be created
+            // create model object for the job here
+            var modelObjectBackup = new Modelobject
+            {
+              kind = "MODELOBJECT",
+              occid = "#2",
+              type = 78,
+              symbol = "80f76b81-35b8-11e3-51cf-c1dbe7832b20",
+              guid = role.BackupId,
+              attributes = new List<Models.Connections.Attribute>
+              {
+                new Models.Connections.Attribute{ kind= "ATTRIBUTE", type=1, value =  role.Backup }
+              }
+            };
+
+
+            var modelConnectionBackup = new Modelconnection { kind = "MODELCONNECTION", type = 480, source_occid = "#1", target_occid = "#2" };
+
+            var createdConnectionBackup = new CreateConnection
+            {
+              modelconnections = new List<Modelconnection> { modelConnectionBackup },
+            };
+
+            if (createdConnection.modelobjects == null)
+            {
+              createdConnection.modelobjects = new List<Modelobject>();
+            }
+
+            createdConnection.modelobjects.Add(modelObject);
+            createdConnection.modelobjects.Add(modelObjectBackup);
+            createConnections.Add(createdConnectionBackup);
+          }
+        }
+
+        var updateData = JsonConvert.SerializeObject(createConnections);
+        var url = ApiHelper.UrlBuilder(ApiTypeEnum.CreateData, updateData);
+
+        var response = GetRawResponse(token, url);
+      }
+
+      foreach (var deletedItem in deletedItems)
+      {
+
+      }
     }
 
     static string GetKnownColor()
