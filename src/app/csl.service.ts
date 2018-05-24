@@ -16,8 +16,8 @@ const httpOptions = {
 export class CslService {
   toasterService: ToasterService;
   //  private apiUrl = 'http://localhost:56272/api/Values/';  // URL to web api
-//  private apiUrl = 'http://192.168.1.114/ArisAPI/api/Values/';  // URL to web api
-   private apiUrl = 'http://10.10.20.65/ArisAPI/api/Values/';
+  //  private apiUrl = 'http://192.168.1.114/ArisAPI/api/Values/';  // URL to web api
+  private apiUrl = 'http://10.10.20.65/ArisAPI/api/Values/';
   // globalVars = GlobalVars;
   constructor(private http: HttpClient, toasterService: ToasterService) {
     this.toasterService = toasterService;
@@ -34,7 +34,7 @@ export class CslService {
     return this.http.post<any[]>(url, param, httpOptions).pipe(
       tap(obj => {
         // this.globalVars.loading = false;
-    }),
+      }),
       catchError(this.handleError('getCSLData', []))
     );
   }
@@ -44,7 +44,7 @@ export class CslService {
     return this.http.get<string>(this.apiUrl + 'token', httpOptions).pipe(
       tap(obj => {
         // this.globalVars.loading = false;
-    }),
+      }),
       catchError(this.handleError('getCSLData', []))
     );
   }

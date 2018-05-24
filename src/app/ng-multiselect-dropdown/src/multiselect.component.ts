@@ -35,6 +35,7 @@ export interface DropdownSettings {
   limitSelection?: Number;
   searchPlaceholderText?: String;
   closeDropDownOnSelection?: Boolean;
+  DisabledField?: string;
 }
 
 export const DROPDOWN_CONTROL_VALUE_ACCESSOR: any = {
@@ -71,7 +72,8 @@ export class MultiSelectComponent implements ControlValueAccessor {
     maxHeight: 197,
     itemsShowLimit: 999999999999,
     searchPlaceholderText: 'Search',
-    closeDropDownOnSelection: false
+    closeDropDownOnSelection: false,
+    DisabledField: 'DisabledField'
   };
 
   @Input()
@@ -113,7 +115,8 @@ export class MultiSelectComponent implements ControlValueAccessor {
             : new ListItem({
                 id: item[this._settings.idField],
                 text: item[this._settings.textField],
-                color: item[this._settings.color]
+                color: item[this._settings.color],
+                DisabledField: item[this._settings.DisabledField]
               })
       );
     }
@@ -139,7 +142,7 @@ export class MultiSelectComponent implements ControlValueAccessor {
   }
 
   onItemClick($event: any, item: ListItem) {
-    if (this.disabled) {
+    if (this.disabled || item.DisabledField === 'true') {
       return false;
     }
 
@@ -174,7 +177,8 @@ export class MultiSelectComponent implements ControlValueAccessor {
                 : new ListItem({
                     id: firstItem[this._settings.idField],
                     text: firstItem[this._settings.textField],
-                    color: firstItem[this._settings.color]
+                    color: firstItem[this._settings.color],
+                    DisabledField: firstItem[this._settings.DisabledField]
                   })
             ];
           }
@@ -189,7 +193,8 @@ export class MultiSelectComponent implements ControlValueAccessor {
               : new ListItem({
                   id: item[this._settings.idField],
                   text: item[this._settings.textField],
-                  color: item[this._settings.color]
+                  color: item[this._settings.color],
+                  DisabledField: item[this._settings.DisabledField]
                 })
         );
         if (this._settings.limitSelection) {
@@ -295,6 +300,7 @@ export class MultiSelectComponent implements ControlValueAccessor {
     obj[this._settings.idField] = val.id;
     obj[this._settings.textField] = val.text;
     obj[this._settings.color] = val.color;
+    obj[this._settings.DisabledField] = val.DisabledField;
     return obj;
   }
 
