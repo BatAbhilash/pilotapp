@@ -46,3 +46,4 @@ Thumbs.db
 /.vscode
 /Services/Aris.API/.vs
 /.vs
+/Services/Aris.API/.vs/*
