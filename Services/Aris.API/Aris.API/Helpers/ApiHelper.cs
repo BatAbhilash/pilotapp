@@ -90,6 +90,14 @@ namespace Aris.API.Helpers
       {
         url = BaseUrl + DatabaseName + "/" + ModelId + "/" + "&updateData=" + Convert.ToString(data) + "";
       }
+      else if (apiTypeEnum == ApiTypeEnum.ModelConnection)
+      {
+        url = BaseUrl + "/models" + DatabaseName + "/" + ModelId + "/" + "?withcontent=true";
+      }
+      else if (apiTypeEnum == ApiTypeEnum.DeleteData)
+      {
+        url = BaseUrl + DatabaseName + "/" + ModelId + "/" + "&occId=" + Convert.ToString(data) + "";
+      }
 
       return url;
     }

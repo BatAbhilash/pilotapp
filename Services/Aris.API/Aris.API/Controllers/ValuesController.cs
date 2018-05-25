@@ -4,6 +4,7 @@ using Aris.API.Models;
 using Aris.API.Models.Connections;
 using LocationPersonModel;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -460,15 +461,77 @@ namespace Aris.API.Controllers
         }
 
         var updateData = JsonConvert.SerializeObject(createConnections);
-        var url = ApiHelper.UrlBuilder(ApiTypeEnum.CreateData, updateData);
+        var createUrl = ApiHelper.UrlBuilder(ApiTypeEnum.CreateData, updateData);
 
-        var response = GetRawResponse(token, url);
+        var response = GetRawResponse(token, createUrl);
       }
 
+
+      #region Delete data from ARIS
+
+      // get connection id from the database for this database and model guid
+      var modelConnectionUrl = ApiHelper.UrlBuilder(ApiTypeEnum.ModelConnection);
+      var responseJson = GetRawResponse(token, modelConnectionUrl);
+      var parsed = JObject.Parse(responseJson);
+      var modelConnectionsJson = parsed["items"]["modelconnections"];
+      var modelConnections = new List<OccurenceConnection>();
+      foreach (var jToken in modelConnectionsJson)
+      {
+        modelConnections.Add(new OccurenceConnection
+        {
+          kind = Convert.ToString(jToken["kind"]),
+          occid = Convert.ToString(jToken["occid"]),
+          type = Convert.ToString(jToken["type"]),
+          typename = Convert.ToString(jToken["typename"]),
+          apiname = Convert.ToString(jToken["apiname"]),
+          source_guid = Convert.ToString(jToken["source_guid"]),
+          target_guid = Convert.ToString(jToken["target_guid"]),
+          source_link = Convert.ToString(jToken["source_link"]),
+          target_link = Convert.ToString(jToken["target_link"]),
+          source_occid = Convert.ToString(jToken["source_occid"]),
+          target_occid = Convert.ToString(jToken["target_occid"])
+        });
+      }
+
+      // loop through the deleted items
       foreach (var deletedItem in deletedItems)
       {
+        var personGuid = deletedItem.PersonId;
 
+        foreach (var job in deletedItem.Jobs)
+        {
+          if (!string.IsNullOrEmpty(job.JobId))
+          {
+            var jobGuid = job.JobId;
+            var occId = modelConnections.Where(i => string.Equals(i.source_guid,personGuid,StringComparison.InvariantCultureIgnoreCase)
+                                              && string.Equals(i.target_guid,jobGuid,StringComparison.InvariantCultureIgnoreCase))
+                                              .Select(i => i.occid).FirstOrDefault();
+            if (!string.IsNullOrEmpty(occId))
+            {
+              var jobDeleteurl = ApiHelper.UrlBuilder(ApiTypeEnum.DeleteData, occId);
+              var response = GetRawResponse(token, jobDeleteurl);
+            }
+          }
+        }
+
+        foreach (var role in deletedItem.Roles)
+        {
+          // person to role model will be created here
+          if (!string.IsNullOrEmpty(role.RoleId))
+          {
+            var roleGuid = role.RoleId;
+            var occId = modelConnections.Where(i => string.Equals(i.source_guid, personGuid, StringComparison.InvariantCultureIgnoreCase)
+                                              && string.Equals(i.target_guid, roleGuid, StringComparison.InvariantCultureIgnoreCase))
+                                              .Select(i => i.occid).FirstOrDefault();
+            if (!string.IsNullOrEmpty(occId))
+            {
+              var roleDeleteUrl = ApiHelper.UrlBuilder(ApiTypeEnum.DeleteData, occId);
+              var response = GetRawResponse(token, roleDeleteUrl);
+            }
+          }
+        }
       }
+      #endregion
     }
 
     static string GetKnownColor()

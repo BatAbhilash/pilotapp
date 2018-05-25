@@ -262,6 +262,7 @@
     <Compile Include="Models\JobRole.cs" />
     <Compile Include="Models\JobHelper\JobMapper.cs" />
     <Compile Include="Models\Location.cs" />
+    <Compile Include="Models\OccurenceConnection.cs" />
     <Compile Include="Models\Person.cs" />
     <Compile Include="Models\Role.cs" />
     <Compile Include="Models\RoleHelper\RoleMapper.cs" />
@@ -277,6 +278,8 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="ApiConfigs\CreateApi.xml" />
+    <Content Include="ApiConfigs\DeleteApi.xml" />
+    <Content Include="ApiConfigs\ModelConnectionApi.xml" />
     <Content Include="ApiConfigs\LocationApi.xml" />
     <Content Include="ApiConfigs\PersonApi.xml" />
     <Content Include="App_Readme\Elmah.txt" />

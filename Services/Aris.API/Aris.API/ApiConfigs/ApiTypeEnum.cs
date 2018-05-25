@@ -9,6 +9,10 @@ namespace Aris.API.ApiConfigs
     [Description("~/ApiConfigs/PersonApi.xml")]
     Persons,
     [Description("~/ApiConfigs/CreateApi.xml")]
-    CreateData
+    CreateData,
+    [Description("~/ApiConfigs/DeleteApi.xml")]
+    DeleteData,
+    [Description("~/ApiConfigs/ModelConnectionApi.xml")]
+    ModelConnection,
   }
 }
