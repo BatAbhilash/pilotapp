@@ -99,5 +99,49 @@ namespace Aris.API
         return string.Empty;
       }
     }
+
+    /// <summary>
+    /// Get raw response from type
+    /// </summary>
+    /// <param name="token">Token to be passed</param>
+    /// <param name="url">Url to be hit to delete</param>
+    /// <param name="type">Http type, post, put, delete</param>
+    /// <param name="content">content to be put in case of put, post</param>
+    /// <returns></returns>
+    public static string GetRawResponse(string token, string url, HttpTypeEnum type, StringContent content = null)
+    {
+      var jsonContent = string.Empty;
+      using (var client = GetClient(token))
+      {
+        var response = new HttpResponseMessage();
+        if (type == HttpTypeEnum.Delete)
+        {
+          response = client.DeleteAsync(url).Result;
+        }
+        else if (type == HttpTypeEnum.Post)
+        {
+          response = client.PostAsync(url, content).Result;
+        }
+        else if (type == HttpTypeEnum.Put)
+        {
+          response = client.PutAsync(url, content).Result;
+        }
+
+        if (response.IsSuccessStatusCode)
+        {
+          jsonContent = response.Content.ReadAsStringAsync().Result;
+          response.Dispose();
+        }
+
+        return jsonContent;
+      }
+    }
+  }
+
+  public enum HttpTypeEnum
+  {
+    Post,
+    Put,
+    Delete
   }
 }

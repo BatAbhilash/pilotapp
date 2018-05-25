@@ -88,7 +88,7 @@ namespace Aris.API.Helpers
       }
       else if (apiTypeEnum == ApiTypeEnum.CreateData)
       {
-        url = BaseUrl + DatabaseName + "/" + ModelId + "/" + "&updateData=" + Convert.ToString(data) + "";
+        url = BaseUrl + DatabaseName + "/" + ModelId;// + "/" + "&updateData=" + Convert.ToString(data) + "";
       }
       else if (apiTypeEnum == ApiTypeEnum.ModelConnection)
       {

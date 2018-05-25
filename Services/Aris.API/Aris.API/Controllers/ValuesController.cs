@@ -461,9 +461,12 @@ namespace Aris.API.Controllers
         }
 
         var updateData = JsonConvert.SerializeObject(createConnections);
-        var createUrl = ApiHelper.UrlBuilder(ApiTypeEnum.CreateData, updateData);
+        var createUrl = ApiHelper.UrlBuilder(ApiTypeEnum.CreateData);
 
-        var response = GetRawResponse(token, createUrl);
+        using (var stringContent = new StringContent(updateData, Encoding.UTF8, "application/json"))
+        {
+          var response = GetRawResponse(token, createUrl, HttpTypeEnum.Put, stringContent);
+        }
       }
 
 
@@ -503,13 +506,13 @@ namespace Aris.API.Controllers
           if (!string.IsNullOrEmpty(job.JobId))
           {
             var jobGuid = job.JobId;
-            var occId = modelConnections.Where(i => string.Equals(i.source_guid,personGuid,StringComparison.InvariantCultureIgnoreCase)
-                                              && string.Equals(i.target_guid,jobGuid,StringComparison.InvariantCultureIgnoreCase))
+            var occId = modelConnections.Where(i => string.Equals(i.source_guid, personGuid, StringComparison.InvariantCultureIgnoreCase)
+                                              && string.Equals(i.target_guid, jobGuid, StringComparison.InvariantCultureIgnoreCase))
                                               .Select(i => i.occid).FirstOrDefault();
             if (!string.IsNullOrEmpty(occId))
             {
               var jobDeleteurl = ApiHelper.UrlBuilder(ApiTypeEnum.DeleteData, occId);
-              var response = GetRawResponse(token, jobDeleteurl);
+              var response = GetRawResponse(token, jobDeleteurl, HttpTypeEnum.Delete);
             }
           }
         }
@@ -526,7 +529,7 @@ namespace Aris.API.Controllers
             if (!string.IsNullOrEmpty(occId))
             {
               var roleDeleteUrl = ApiHelper.UrlBuilder(ApiTypeEnum.DeleteData, occId);
-              var response = GetRawResponse(token, roleDeleteUrl);
+              var response = GetRawResponse(token, roleDeleteUrl, HttpTypeEnum.Delete);
             }
           }
         }
