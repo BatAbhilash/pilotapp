@@ -46,3 +46,5 @@ Thumbs.db
 /.vscode
 /Services/Aris.API/.vs
 /.vs
+/Services/Aris.API/Aris.API/bin
+/Services/Aris.API/Aris.API/obj/Debug
