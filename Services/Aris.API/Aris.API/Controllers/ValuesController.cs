@@ -225,12 +225,14 @@ namespace Aris.API.Controllers
                 {
                   // this is a job
                   jobToAdd.JobName = value;
+                  jobToAdd.JobId = descendant.item.guid;
                   jobList.Add(jobToAdd);
                 }
                 else if (type == "Role")
                 {
                   // this is a role
                   roleToAdd.RoleName = value;
+                  roleToAdd.RoleId = descendant.item.guid;
                   roleList.Add(roleToAdd);
                 }
               }
@@ -325,11 +327,14 @@ namespace Aris.API.Controllers
 
     [HttpPost]
     [Route("api/Values/UpdateAris")]
-    public void UpdateAris([FromBody] TokenModel model, [FromBody]string modelToSave)
+    public void UpdateAris([FromBody] TokenModel model, [FromBody]List<Mapping> modelToSave)
     {
       var token = model.Token;
       var createConnections = new List<CreateConnection>();
-      var mappingData = JsonConvert.DeserializeObject<List<Mapping>>(modelToSave);
+      // deserialize the whole json to object
+      var mappingData = modelToSave;// JsonConvert.DeserializeObject<List<Mapping>>(modelToSave);
+
+
       var createdItems = mappingData.Where(i => i.Status == "New").ToList();
       var deletedItems = mappingData.Where(i => i.Status == "Deleted").ToList();
 
@@ -349,115 +354,109 @@ namespace Aris.API.Controllers
           }
         };
 
-        foreach (var job in createdItem.Jobs)
+        if (!string.IsNullOrEmpty(createdItem.JobId))
         {
-          if (!string.IsNullOrEmpty(job.JobId))
+          // model for job will be created
+          // create model object for the job here
+          var modelObjectJob = new Modelobject
           {
-            // model for job will be created
-            // create model object for the job here
-            var modelObjectJob = new Modelobject
-            {
-              kind = "MODELOBJECT",
-              occid = "#2",
-              type = 44,
-              symbol = "299",
-              guid = job.JobId,
-              attributes = new List<Models.Connections.Attribute>
+            kind = "MODELOBJECT",
+            occid = "#2",
+            type = 44,
+            symbol = "299",
+            guid = createdItem.JobId,
+            attributes = new List<Models.Connections.Attribute>
               {
-                new Models.Connections.Attribute{ kind= "ATTRIBUTE", type=1, value =  job.JobName }
+                new Models.Connections.Attribute{ kind= "ATTRIBUTE", type=1, value =  createdItem.JobName }
               }
-            };
+          };
 
 
-            var modelConnection = new Modelconnection { kind = "MODELCONNECTION", type = 395, source_occid = "#1", target_occid = "#2" };
+          var modelConnection = new Modelconnection { kind = "MODELCONNECTION", type = 395, source_occid = "#1", target_occid = "#2" };
 
-            var createdConnection = new CreateConnection
-            {
-              modelconnections = new List<Modelconnection> { modelConnection },
-            };
+          var createdConnection = new CreateConnection
+          {
+            modelconnections = new List<Modelconnection> { modelConnection },
+          };
 
-            if (createdConnection.modelobjects == null)
-            {
-              createdConnection.modelobjects = new List<Modelobject>();
-            }
-
-            createdConnection.modelobjects.Add(modelObject);
-            createdConnection.modelobjects.Add(modelObjectJob);
-            createConnections.Add(createdConnection);
-
+          if (createdConnection.modelobjects == null)
+          {
+            createdConnection.modelobjects = new List<Modelobject>();
           }
+
+          createdConnection.modelobjects.Add(modelObject);
+          createdConnection.modelobjects.Add(modelObjectJob);
+          createConnections.Add(createdConnection);
+
         }
 
-        foreach (var role in createdItem.Roles)
+        // person to role model will be created here
+        if (!string.IsNullOrEmpty(createdItem.RoleId))
         {
-          // person to role model will be created here
-          if (!string.IsNullOrEmpty(role.RoleId))
+          // model for job will be created
+          // create model object for the job here
+          var modelObjectRole = new Modelobject
           {
-            // model for job will be created
-            // create model object for the job here
-            var modelObjectRole = new Modelobject
-            {
-              kind = "MODELOBJECT",
-              occid = "#2",
-              type = 78,
-              symbol = "80f76b81-35b8-11e3-51cf-c1dbe7832b20",
-              guid = role.RoleId,
-              attributes = new List<Models.Connections.Attribute>
+            kind = "MODELOBJECT",
+            occid = "#2",
+            type = 78,
+            symbol = "80f76b81-35b8-11e3-51cf-c1dbe7832b20",
+            guid = createdItem.RoleId,
+            attributes = new List<Models.Connections.Attribute>
               {
-                new Models.Connections.Attribute{ kind= "ATTRIBUTE", type=1, value =  role.RoleName }
+                new Models.Connections.Attribute{ kind= "ATTRIBUTE", type=1, value =  createdItem.RoleName }
               }
-            };
+          };
 
 
-            var modelConnection = new Modelconnection { kind = "MODELCONNECTION", type = 480, source_occid = "#1", target_occid = "#2" };
+          var modelConnection = new Modelconnection { kind = "MODELCONNECTION", type = 480, source_occid = "#1", target_occid = "#2" };
 
-            var createdConnection = new CreateConnection
-            {
-              modelconnections = new List<Modelconnection> { modelConnection },
-            };
+          var createdConnection = new CreateConnection
+          {
+            modelconnections = new List<Modelconnection> { modelConnection },
+          };
 
-            if (createdConnection.modelobjects == null)
-            {
-              createdConnection.modelobjects = new List<Modelobject>();
-            }
-
-            createdConnection.modelobjects.Add(modelObject);
-            createdConnection.modelobjects.Add(modelObjectRole);
-            createConnections.Add(createdConnection);
-
-            // create the connection for the backup here
-            // model for job will be created
-            // create model object for the job here
-            var modelObjectBackup = new Modelobject
-            {
-              kind = "MODELOBJECT",
-              occid = "#2",
-              type = 78,
-              symbol = "80f76b81-35b8-11e3-51cf-c1dbe7832b20",
-              guid = role.BackupId,
-              attributes = new List<Models.Connections.Attribute>
-              {
-                new Models.Connections.Attribute{ kind= "ATTRIBUTE", type=1, value =  role.Backup }
-              }
-            };
-
-
-            var modelConnectionBackup = new Modelconnection { kind = "MODELCONNECTION", type = 480, source_occid = "#1", target_occid = "#2" };
-
-            var createdConnectionBackup = new CreateConnection
-            {
-              modelconnections = new List<Modelconnection> { modelConnectionBackup },
-            };
-
-            if (createdConnection.modelobjects == null)
-            {
-              createdConnection.modelobjects = new List<Modelobject>();
-            }
-
-            createdConnection.modelobjects.Add(modelObject);
-            createdConnection.modelobjects.Add(modelObjectBackup);
-            createConnections.Add(createdConnectionBackup);
+          if (createdConnection.modelobjects == null)
+          {
+            createdConnection.modelobjects = new List<Modelobject>();
           }
+
+          createdConnection.modelobjects.Add(modelObject);
+          createdConnection.modelobjects.Add(modelObjectRole);
+          createConnections.Add(createdConnection);
+
+          // create the connection for the backup here
+          // model for job will be created
+          // create model object for the job here
+          var modelObjectBackup = new Modelobject
+          {
+            kind = "MODELOBJECT",
+            occid = "#2",
+            type = 78,
+            symbol = "80f76b81-35b8-11e3-51cf-c1dbe7832b20",
+            guid = createdItem.BackupId,
+            attributes = new List<Models.Connections.Attribute>
+              {
+                new Models.Connections.Attribute{ kind= "ATTRIBUTE", type=1, value =  createdItem.Backup }
+              }
+          };
+
+
+          var modelConnectionBackup = new Modelconnection { kind = "MODELCONNECTION", type = 480, source_occid = "#1", target_occid = "#2" };
+
+          var createdConnectionBackup = new CreateConnection
+          {
+            modelconnections = new List<Modelconnection> { modelConnectionBackup },
+          };
+
+          if (createdConnection.modelobjects == null)
+          {
+            createdConnection.modelobjects = new List<Modelobject>();
+          }
+
+          createdConnection.modelobjects.Add(modelObject);
+          createdConnection.modelobjects.Add(modelObjectBackup);
+          createConnections.Add(createdConnectionBackup);
         }
 
         var updateData = JsonConvert.SerializeObject(createConnections);
@@ -500,12 +499,9 @@ namespace Aris.API.Controllers
       foreach (var deletedItem in deletedItems)
       {
         var personGuid = deletedItem.PersonId;
-
-        foreach (var job in deletedItem.Jobs)
-        {
-          if (!string.IsNullOrEmpty(job.JobId))
+          if (!string.IsNullOrEmpty(deletedItem.JobId))
           {
-            var jobGuid = job.JobId;
+            var jobGuid = deletedItem.JobId;
             var occId = modelConnections.Where(i => string.Equals(i.source_guid, personGuid, StringComparison.InvariantCultureIgnoreCase)
                                               && string.Equals(i.target_guid, jobGuid, StringComparison.InvariantCultureIgnoreCase))
                                               .Select(i => i.occid).FirstOrDefault();
@@ -515,14 +511,11 @@ namespace Aris.API.Controllers
               var response = GetRawResponse(token, jobDeleteurl, HttpTypeEnum.Delete);
             }
           }
-        }
 
-        foreach (var role in deletedItem.Roles)
-        {
           // person to role model will be created here
-          if (!string.IsNullOrEmpty(role.RoleId))
+          if (!string.IsNullOrEmpty(deletedItem.RoleId))
           {
-            var roleGuid = role.RoleId;
+            var roleGuid = deletedItem.RoleId;
             var occId = modelConnections.Where(i => string.Equals(i.source_guid, personGuid, StringComparison.InvariantCultureIgnoreCase)
                                               && string.Equals(i.target_guid, roleGuid, StringComparison.InvariantCultureIgnoreCase))
                                               .Select(i => i.occid).FirstOrDefault();
@@ -532,7 +525,6 @@ namespace Aris.API.Controllers
               var response = GetRawResponse(token, roleDeleteUrl, HttpTypeEnum.Delete);
             }
           }
-        }
       }
       #endregion
     }
@@ -837,6 +829,7 @@ namespace Aris.API.Controllers
       {
         Backups = new List<Person>()
       };
+
       if (string.IsNullOrWhiteSpace(token))
         return rootObject;
 
