@@ -2,6 +2,7 @@ using Aris.API.ApiConfigs;
 using Aris.API.Helpers;
 using Aris.API.Models;
 using Aris.API.Models.Connections;
+using Aris.API.Models.Connections.Occ;
 using LocationPersonModel;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -330,7 +331,7 @@ namespace Aris.API.Controllers
     public void UpdateAris([FromBody] MappingList model)
     {
       var token = model.Token;
-      var createConnections = new List<CreateConnection>();
+      
       // deserialize the whole json to object
       var mappingData = model.modelToSave;// JsonConvert.DeserializeObject<List<Mapping>>(modelToSave);
 
@@ -341,7 +342,7 @@ namespace Aris.API.Controllers
       foreach (var createdItem in createdItems)
       {
         // model object for the person
-        var modelObject = new Modelobject
+        var modelObject = new Models.Connections.Modelobject
         {
           kind = "MODELOBJECT",
           occid = "#1",
@@ -350,15 +351,29 @@ namespace Aris.API.Controllers
           guid = createdItem.PersonId,
           attributes = new List<Models.Connections.Attribute>
           {
-            new Models.Connections.Attribute {  kind= "ATTRIBUTE", type=1,value= createdItem.Person }
+            new Models.Connections.Attribute
+            {
+              kind = "ATTRIBUTE", type=1,value= createdItem.Person
+            },
+            // location update
+            new Models.Connections.Attribute
+            {
+              kind = "ATTRIBUTE", type= "8de0d080-4df4-11e8-3e7a-0296de82851c", value = createdItem.Location
+            },
+            // supervisor update
+            new Models.Connections.Attribute
+            {
+              kind = "ATTRIBUTE", type= "967c08d1-4f71-11e8-6a1e-d89d672712a8",value= createdItem.Supervisor
+            }
           }
         };
 
         if (!string.IsNullOrEmpty(createdItem.JobId))
         {
+          var createConnections = new List<CreateConnection>();
           // model for job will be created
           // create model object for the job here
-          var modelObjectJob = new Modelobject
+          var modelObjectJob = new Models.Connections.Modelobject
           {
             kind = "MODELOBJECT",
             occid = "#2",
@@ -372,30 +387,44 @@ namespace Aris.API.Controllers
           };
 
 
-          var modelConnection = new Modelconnection { kind = "MODELCONNECTION", type = 395, source_occid = "#1", target_occid = "#2" };
+          var modelConnection = new Models.Connections.Modelconnection { kind = "MODELCONNECTION", type = 395, source_occid = "#1", target_occid = "#2" };
 
           var createdConnection = new CreateConnection
           {
-            modelconnections = new List<Modelconnection> { modelConnection },
+            modelconnections = new List<Models.Connections.Modelconnection> { modelConnection },
           };
 
           if (createdConnection.modelobjects == null)
           {
-            createdConnection.modelobjects = new List<Modelobject>();
+            createdConnection.modelobjects = new List<Models.Connections.Modelobject>();
           }
 
           createdConnection.modelobjects.Add(modelObject);
           createdConnection.modelobjects.Add(modelObjectJob);
           createConnections.Add(createdConnection);
 
+          var updateData = JsonConvert.SerializeObject(createConnections);
+          // remove first [
+          updateData = updateData.Substring(1);
+          // remove last ]
+          updateData = updateData.Remove(updateData.Length - 1);
+
+          var createUrl = ApiHelper.UrlBuilder(ApiTypeEnum.CreateData);
+
+          using (var stringContent = new StringContent(updateData, Encoding.UTF8, "application/json"))
+          {
+            var response = GetRawResponse(token, createUrl, HttpTypeEnum.Put, stringContent);
+          }
+
         }
 
         // person to role model will be created here
         if (!string.IsNullOrEmpty(createdItem.RoleId))
         {
+          var createConnections = new List<CreateConnection>();
           // model for job will be created
           // create model object for the job here
-          var modelObjectRole = new Modelobject
+          var modelObjectRole = new Models.Connections.Modelobject
           {
             kind = "MODELOBJECT",
             occid = "#2",
@@ -409,68 +438,113 @@ namespace Aris.API.Controllers
           };
 
 
-          var modelConnection = new Modelconnection { kind = "MODELCONNECTION", type = 480, source_occid = "#1", target_occid = "#2" };
+          var modelConnection = new Models.Connections.Modelconnection { kind = "MODELCONNECTION", type = 480, source_occid = "#1", target_occid = "#2" };
 
           var createdConnection = new CreateConnection
           {
-            modelconnections = new List<Modelconnection> { modelConnection },
+            modelconnections = new List<Models.Connections.Modelconnection> { modelConnection },
           };
 
           if (createdConnection.modelobjects == null)
           {
-            createdConnection.modelobjects = new List<Modelobject>();
+            createdConnection.modelobjects = new List<Models.Connections.Modelobject>();
           }
 
           createdConnection.modelobjects.Add(modelObject);
           createdConnection.modelobjects.Add(modelObjectRole);
           createConnections.Add(createdConnection);
 
+          var updateData = JsonConvert.SerializeObject(createConnections);
+          // remove first [
+          updateData = updateData.Substring(1);
+          // remove last ]
+          updateData = updateData.Remove(updateData.Length - 1);
+
+          var createUrl = ApiHelper.UrlBuilder(ApiTypeEnum.CreateData);
+
+          using (var stringContent = new StringContent(updateData, Encoding.UTF8, "application/json"))
+          {
+            var response = GetRawResponse(token, createUrl, HttpTypeEnum.Put, stringContent);
+          }
+
+        }
+
+        if (!string.IsNullOrEmpty(createdItem.BackupId))
+        {
+          var createConnections = new List<CreateConnection>();
+          // model object for the person
+          var modelObjectRole = new Models.Connections.Modelobject
+          {
+            kind = "MODELOBJECT",
+            occid = "#1",
+            type = 46,
+            symbol = (int)2,
+            guid = createdItem.BackupId,
+            attributes = new List<Models.Connections.Attribute>
+          {
+            new Models.Connections.Attribute {  kind= "ATTRIBUTE", type=1,value= createdItem.Backup }
+          }
+          };
+
           // create the connection for the backup here
           // model for job will be created
           // create model object for the job here
-          var modelObjectBackup = new Modelobject
+          var modelObjectBackup = new Models.Connections.Modelobject
           {
             kind = "MODELOBJECT",
             occid = "#2",
             type = 78,
             symbol = "80f76b81-35b8-11e3-51cf-c1dbe7832b20",
-            guid = createdItem.BackupId,
+            guid = createdItem.RoleId,
             attributes = new List<Models.Connections.Attribute>
               {
-                new Models.Connections.Attribute{ kind= "ATTRIBUTE", type=1, value =  createdItem.Backup }
+                new Models.Connections.Attribute{ kind= "ATTRIBUTE", type=1, value =  createdItem.RoleName }
               }
           };
 
 
-          var modelConnectionBackup = new Modelconnection { kind = "MODELCONNECTION", type = 480, source_occid = "#1", target_occid = "#2" };
+          var modelConnectionBackup = new Models.Connections.Modelconnection { kind = "MODELCONNECTION", type = 61, source_occid = "#1", target_occid = "#2" };
 
           var createdConnectionBackup = new CreateConnection
           {
-            modelconnections = new List<Modelconnection> { modelConnectionBackup },
+            modelconnections = new List<Models.Connections.Modelconnection> { modelConnectionBackup },
           };
 
-          if (createdConnection.modelobjects == null)
+          if (createdConnectionBackup.modelobjects == null)
           {
-            createdConnection.modelobjects = new List<Modelobject>();
+            createdConnectionBackup.modelobjects = new List<Models.Connections.Modelobject>();
           }
 
-          createdConnection.modelobjects.Add(modelObject);
-          createdConnection.modelobjects.Add(modelObjectBackup);
+          createdConnectionBackup.modelobjects.Add(modelObjectRole);
+          createdConnectionBackup.modelobjects.Add(modelObjectBackup);
           createConnections.Add(createdConnectionBackup);
+
+          var updateData = JsonConvert.SerializeObject(createConnections);
+          // remove first [
+          updateData = updateData.Substring(1);
+          // remove last ]
+          updateData = updateData.Remove(updateData.Length - 1);
+
+          var createUrl = ApiHelper.UrlBuilder(ApiTypeEnum.CreateData);
+
+          using (var stringContent = new StringContent(updateData, Encoding.UTF8, "application/json"))
+          {
+            var response = GetRawResponse(token, createUrl, HttpTypeEnum.Put, stringContent);
+          }
         }
 
-        var updateData = JsonConvert.SerializeObject(createConnections);
-        // remove first [
-        updateData = updateData.Substring(1);
-        // remove last ]
-        updateData = updateData.Remove(updateData.Length - 1);
+        //var updateData = JsonConvert.SerializeObject(createConnections);
+        //// remove first [
+        //updateData = updateData.Substring(1);
+        //// remove last ]
+        //updateData = updateData.Remove(updateData.Length - 1);
 
-        var createUrl = ApiHelper.UrlBuilder(ApiTypeEnum.CreateData);
+        //var createUrl = ApiHelper.UrlBuilder(ApiTypeEnum.CreateData);
 
-        using (var stringContent = new StringContent(updateData, Encoding.UTF8, "application/json"))
-        {
-          var response = GetRawResponse(token, createUrl, HttpTypeEnum.Put, stringContent);
-        }
+        //using (var stringContent = new StringContent(updateData, Encoding.UTF8, "application/json"))
+        //{
+        //  var response = GetRawResponse(token, createUrl, HttpTypeEnum.Put, stringContent);
+        //}
       }
 
 
@@ -481,25 +555,30 @@ namespace Aris.API.Controllers
         // get connection id from the database for this database and model guid
         var modelConnectionUrl = ApiHelper.UrlBuilder(ApiTypeEnum.ModelConnection);
         var responseJson = GetRawResponse(token, modelConnectionUrl);
-        var parsed = JObject.Parse(responseJson);
-        var modelConnectionsJson = parsed["items"]["modelconnections"];
+        var data = JsonConvert.DeserializeObject<OccsRootObject>(responseJson);
+        //var parsed = JObject.Parse(responseJson);
+        //var modelConnectionsJson = parsed["items"]["modelconnections"];
+      
         var modelConnections = new List<OccurenceConnection>();
-        foreach (var jToken in modelConnectionsJson)
+        foreach (var item in data.items)
         {
-          modelConnections.Add(new OccurenceConnection
+          foreach (var mc in item.modelconnections)
           {
-            kind = Convert.ToString(jToken["kind"]),
-            occid = Convert.ToString(jToken["occid"]),
-            type = Convert.ToString(jToken["type"]),
-            typename = Convert.ToString(jToken["typename"]),
-            apiname = Convert.ToString(jToken["apiname"]),
-            source_guid = Convert.ToString(jToken["source_guid"]),
-            target_guid = Convert.ToString(jToken["target_guid"]),
-            source_link = Convert.ToString(jToken["source_link"]),
-            target_link = Convert.ToString(jToken["target_link"]),
-            source_occid = Convert.ToString(jToken["source_occid"]),
-            target_occid = Convert.ToString(jToken["target_occid"])
-          });
+            modelConnections.Add(new OccurenceConnection
+            {
+              kind =       mc.kind,
+              occid =       mc.occid,
+              //type =        mc.type,
+              typename =    mc.typename,
+              apiname =     mc.apiname,
+              target_guid = mc.target_guid,
+              source_guid = mc.source_guid,
+              //source_link = mc.source_link,
+              //target_link = mc.target_link,
+              source_occid = mc.source_occid,
+              target_occid = mc.target_occid
+            });
+          }
         }
 
         // loop through the deleted items
@@ -512,9 +591,10 @@ namespace Aris.API.Controllers
             var occId = modelConnections.Where(i => string.Equals(i.source_guid, personGuid, StringComparison.InvariantCultureIgnoreCase)
                                               && string.Equals(i.target_guid, jobGuid, StringComparison.InvariantCultureIgnoreCase))
                                               .Select(i => i.occid).FirstOrDefault();
+            var encodedOccId = HttpUtility.UrlEncode(occId);
             if (!string.IsNullOrEmpty(occId))
             {
-              var jobDeleteurl = ApiHelper.UrlBuilder(ApiTypeEnum.DeleteData, occId);
+              var jobDeleteurl = ApiHelper.UrlBuilder(ApiTypeEnum.DeleteData, encodedOccId);
               var response = GetRawResponse(token, jobDeleteurl, HttpTypeEnum.Delete);
             }
           }
@@ -526,10 +606,15 @@ namespace Aris.API.Controllers
             var occId = modelConnections.Where(i => string.Equals(i.source_guid, personGuid, StringComparison.InvariantCultureIgnoreCase)
                                               && string.Equals(i.target_guid, roleGuid, StringComparison.InvariantCultureIgnoreCase))
                                               .Select(i => i.occid).FirstOrDefault();
+
+            var encodedOccId = HttpUtility.UrlEncode(occId);
+
             if (!string.IsNullOrEmpty(occId))
             {
-              var roleDeleteUrl = ApiHelper.UrlBuilder(ApiTypeEnum.DeleteData, occId);
+              var roleDeleteUrl = ApiHelper.UrlBuilder(ApiTypeEnum.DeleteData, encodedOccId);
+
               var response = GetRawResponse(token, roleDeleteUrl, HttpTypeEnum.Delete);
+
             }
           }
         }

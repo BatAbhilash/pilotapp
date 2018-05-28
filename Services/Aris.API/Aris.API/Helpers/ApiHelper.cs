@@ -65,6 +65,8 @@ namespace Aris.API.Helpers
                 + HttpUtility.UrlEncode(child.Name.LocalName) + "="
                 + HttpUtility.UrlEncode(child.Value)).ToArray());
 
+      if (string.IsNullOrEmpty(query)) return string.Empty;
+
       query = query.Replace("&&", "&");
 
       query = query.Remove(0, 1);
@@ -98,7 +100,7 @@ namespace Aris.API.Helpers
       }
       else if (apiTypeEnum == ApiTypeEnum.DeleteData)
       {
-        url = BaseUrl + DatabaseName + "/" + ModelId + "/" + "&occId=" + Convert.ToString(data) + "";
+        url = BaseUrl + "models" + DatabaseName + ModelId + "/connections" + "?occid=" + Convert.ToString(data) + "";
       }
 
       return url;

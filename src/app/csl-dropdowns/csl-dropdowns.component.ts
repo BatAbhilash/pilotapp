@@ -209,7 +209,7 @@ export class CslDropdownsComponent implements OnInit {
         o['RoleName'] = 'NA';
         o['Backup'] = 'NA';
        const roleObj = _.filter(self.response.Role, roleX => {
-          if (roleX.RoleId === obj.RoleId) {
+          if (roleX.JobId === obj.JobId) {
             return roleX;
           }
         });
@@ -230,24 +230,31 @@ export class CslDropdownsComponent implements OnInit {
     }
     if (self.response.Role.length > 0) {
       _.forEach(self.response.Role, function (obj) {
-        if (!obj.PersonId) {
+        if (obj.JobId === null) {
         const o = _.cloneDeep(tableData);
         o['RoleName'] = obj.RoleName;
         o['Status'] = 'New';
         o['RoleId'] = obj.RoleId;
         o['JobName'] = 'NA';
         o['JobId'] = null;
+        if (self.response.Backup.length > 0) {
+        o['Backup'] = self.response.Backup[0]['Name'];
+        o['BackupId'] = self.response.Backup[0]['PersonId'];
+        } else {
+          o['Backup'] = 'NA';
+          o['BackupId'] = 'NA';
+        }
         const backupTemp = _.find(self.response.Backup, x => {
           if (x.RoleId === obj.RoleId) {
             return x;
           }
         });
-        if (backupTemp) {
-         o['Backup'] = backupTemp['Name'];
-         o['BackupId'] = backupTemp['PersonId'];
-        } else {
-          o['Backup'] = 'NA';
-        }
+        // if (backupTemp) {
+        //  o['Backup'] = backupTemp['Name'];
+        //  o['BackupId'] = backupTemp['PersonId'];
+        // } else {
+        //   o['Backup'] = 'NA';
+        // }
         if (!(_.find(self.tableContent, o))) {
           duplicateFlag = false;
         self.tableContent.push(o);

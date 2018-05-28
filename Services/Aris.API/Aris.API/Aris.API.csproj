@@ -262,6 +262,7 @@
     <Compile Include="Models\AccountViewModels.cs" />
     <Compile Include="Models\Connections\CreateConnection.cs" />
     <Compile Include="Models\Connections\Mapping.cs" />
+    <Compile Include="Models\Connections\Occ\Occs.cs" />
     <Compile Include="Models\Data.cs" />
     <Compile Include="Models\IdentityModels.cs" />
     <Compile Include="Models\Job.cs" />
@@ -288,7 +289,9 @@
     <Content Include="ApiConfigs\DeleteApi.xml" />
     <Content Include="ApiConfigs\ModelConnectionApi.xml" />
     <Content Include="ApiConfigs\LocationApi.xml" />
-    <Content Include="ApiConfigs\PersonApi.xml" />
+    <Content Include="ApiConfigs\PersonApi.xml">
+      <SubType>Designer</SubType>
+    </Content>
     <Content Include="App_Readme\Elmah.txt" />
     <Content Include="Areas\HelpPage\HelpPage.css" />
     <Content Include="Content\bootstrap.css" />

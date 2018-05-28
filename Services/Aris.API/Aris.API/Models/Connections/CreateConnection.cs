@@ -5,7 +5,7 @@ namespace Aris.API.Models.Connections
   public class Attribute
   {
     public string kind { get; set; }
-    public int type { get; set; }
+    public object type { get; set; }
     public string value { get; set; }
   }
 
