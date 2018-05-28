@@ -17,6 +17,7 @@ export class CsvTableComponent implements OnInit {
   source: LocalDataSource;
   toasterService: ToasterService;
   cslService: CslService;
+  loading: Boolean;
   response = {
     Location: {},
     Head: {},
@@ -37,25 +38,25 @@ export class CsvTableComponent implements OnInit {
       select: true,
     },
     columns: {
-      location: {
+      Location: {
         title: 'Location',
       },
-      supervisors: {
+      Supervisors: {
         title: 'Supervisor'
       },
-      name: {
+      Name: {
         title: 'Person'
       },
-      jobName: {
+      JobName: {
         title: 'Job'
       },
-      roleName: {
+      RoleName: {
         title: 'Role'
       },
-      backup: {
+      Backup: {
         title: 'Backup'
       },
-      status: {
+      Status: {
         title: 'Status'
       }
     },
@@ -136,10 +137,26 @@ export class CsvTableComponent implements OnInit {
 
   submitData() {
     const self = this;
-    _.pullAll(self.tableContent, self.tableContent);
-    self.source = new LocalDataSource(self.tableContent);
-    self.source.refresh();
-    this.selectedRows = [];
-    this.toasterService.pop('success', 'Success!', 'Records Saved Successfully!');
+    self.loading = true;
+    const requestObj = {
+      'modelToSave': self.tableContent,
+      'Token': localStorage.getItem('token')
+    };
+    self.cslService.getCSLData('UpdateAris', requestObj)
+    .subscribe(obj => {
+
+      _.pullAll(self.tableContent, self.tableContent);
+      self.source = new LocalDataSource(self.tableContent);
+      self.source.refresh();
+      self.selectedRows = [];
+      self.loading = false;
+      self.toasterService.pop('success', 'Success!', 'Records Saved Successfully!');
+    }, err => {
+      console.log(err);
+      self.loading = false;
+      self.toasterService.pop('error', 'error!', 'Something went wrong!');
+    });
+
+    // this.toasterService.pop('success', 'Success!', 'Records Saved Successfully!');
   }
 }

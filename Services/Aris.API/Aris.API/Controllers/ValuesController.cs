@@ -180,7 +180,7 @@ namespace Aris.API.Controllers
         client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
         client.DefaultRequestHeaders.Add("Authorization", "UMC " + token);
 
-        var jsonPost = JobQuery.JobQueryData();
+        var jsonPost = JobQuery.JobQueryData(model.PersonId);
 
         using (var stringContent = new StringContent(jsonPost, Encoding.UTF8, "application/json"))
         {
@@ -327,12 +327,12 @@ namespace Aris.API.Controllers
 
     [HttpPost]
     [Route("api/Values/UpdateAris")]
-    public void UpdateAris([FromBody] TokenModel model, [FromBody]List<Mapping> modelToSave)
+    public void UpdateAris([FromBody] MappingList model)
     {
       var token = model.Token;
       var createConnections = new List<CreateConnection>();
       // deserialize the whole json to object
-      var mappingData = modelToSave;// JsonConvert.DeserializeObject<List<Mapping>>(modelToSave);
+      var mappingData = model.modelToSave;// JsonConvert.DeserializeObject<List<Mapping>>(modelToSave);
 
 
       var createdItems = mappingData.Where(i => i.Status == "New").ToList();
@@ -346,7 +346,7 @@ namespace Aris.API.Controllers
           kind = "MODELOBJECT",
           occid = "#1",
           type = 46,
-          symbol = "2",
+          symbol = (int)2,
           guid = createdItem.PersonId,
           attributes = new List<Models.Connections.Attribute>
           {
@@ -363,7 +363,7 @@ namespace Aris.API.Controllers
             kind = "MODELOBJECT",
             occid = "#2",
             type = 44,
-            symbol = "299",
+            symbol = (int)299,
             guid = createdItem.JobId,
             attributes = new List<Models.Connections.Attribute>
               {
@@ -460,6 +460,11 @@ namespace Aris.API.Controllers
         }
 
         var updateData = JsonConvert.SerializeObject(createConnections);
+        // remove first [
+        updateData = updateData.Substring(1);
+        // remove last ]
+        updateData = updateData.Remove(updateData.Length - 1);
+
         var createUrl = ApiHelper.UrlBuilder(ApiTypeEnum.CreateData);
 
         using (var stringContent = new StringContent(updateData, Encoding.UTF8, "application/json"))
@@ -470,35 +475,37 @@ namespace Aris.API.Controllers
 
 
       #region Delete data from ARIS
-
-      // get connection id from the database for this database and model guid
-      var modelConnectionUrl = ApiHelper.UrlBuilder(ApiTypeEnum.ModelConnection);
-      var responseJson = GetRawResponse(token, modelConnectionUrl);
-      var parsed = JObject.Parse(responseJson);
-      var modelConnectionsJson = parsed["items"]["modelconnections"];
-      var modelConnections = new List<OccurenceConnection>();
-      foreach (var jToken in modelConnectionsJson)
+      // call the occ id connection api if there is any data in deleted items
+      if (deletedItems != null && deletedItems.Count > 0)
       {
-        modelConnections.Add(new OccurenceConnection
+        // get connection id from the database for this database and model guid
+        var modelConnectionUrl = ApiHelper.UrlBuilder(ApiTypeEnum.ModelConnection);
+        var responseJson = GetRawResponse(token, modelConnectionUrl);
+        var parsed = JObject.Parse(responseJson);
+        var modelConnectionsJson = parsed["items"]["modelconnections"];
+        var modelConnections = new List<OccurenceConnection>();
+        foreach (var jToken in modelConnectionsJson)
         {
-          kind = Convert.ToString(jToken["kind"]),
-          occid = Convert.ToString(jToken["occid"]),
-          type = Convert.ToString(jToken["type"]),
-          typename = Convert.ToString(jToken["typename"]),
-          apiname = Convert.ToString(jToken["apiname"]),
-          source_guid = Convert.ToString(jToken["source_guid"]),
-          target_guid = Convert.ToString(jToken["target_guid"]),
-          source_link = Convert.ToString(jToken["source_link"]),
-          target_link = Convert.ToString(jToken["target_link"]),
-          source_occid = Convert.ToString(jToken["source_occid"]),
-          target_occid = Convert.ToString(jToken["target_occid"])
-        });
-      }
+          modelConnections.Add(new OccurenceConnection
+          {
+            kind = Convert.ToString(jToken["kind"]),
+            occid = Convert.ToString(jToken["occid"]),
+            type = Convert.ToString(jToken["type"]),
+            typename = Convert.ToString(jToken["typename"]),
+            apiname = Convert.ToString(jToken["apiname"]),
+            source_guid = Convert.ToString(jToken["source_guid"]),
+            target_guid = Convert.ToString(jToken["target_guid"]),
+            source_link = Convert.ToString(jToken["source_link"]),
+            target_link = Convert.ToString(jToken["target_link"]),
+            source_occid = Convert.ToString(jToken["source_occid"]),
+            target_occid = Convert.ToString(jToken["target_occid"])
+          });
+        }
 
-      // loop through the deleted items
-      foreach (var deletedItem in deletedItems)
-      {
-        var personGuid = deletedItem.PersonId;
+        // loop through the deleted items
+        foreach (var deletedItem in deletedItems)
+        {
+          var personGuid = deletedItem.PersonId;
           if (!string.IsNullOrEmpty(deletedItem.JobId))
           {
             var jobGuid = deletedItem.JobId;
@@ -525,6 +532,7 @@ namespace Aris.API.Controllers
               var response = GetRawResponse(token, roleDeleteUrl, HttpTypeEnum.Delete);
             }
           }
+        }
       }
       #endregion
     }

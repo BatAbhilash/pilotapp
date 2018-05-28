@@ -56,6 +56,8 @@ namespace Aris.API.Helpers
     /// <returns>a string with query formation</returns>
     static string GetQueryFromXml(string xml)
     {
+      if (string.IsNullOrEmpty(xml)) return string.Empty;
+       
       var query = string.Join("&", (
            from parent in XElement.Parse(xml).Elements()
            from child in parent.Elements()
@@ -88,7 +90,7 @@ namespace Aris.API.Helpers
       }
       else if (apiTypeEnum == ApiTypeEnum.CreateData)
       {
-        url = BaseUrl + DatabaseName + "/" + ModelId;// + "/" + "&updateData=" + Convert.ToString(data) + "";
+        url = BaseUrl + "/models"+ DatabaseName + ModelId;// + "/" + "&updateData=" + Convert.ToString(data) + "";
       }
       else if (apiTypeEnum == ApiTypeEnum.ModelConnection)
       {

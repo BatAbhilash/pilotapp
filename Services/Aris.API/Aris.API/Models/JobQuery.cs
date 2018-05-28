@@ -1,4 +1,4 @@
-﻿using Newtonsoft.Json;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -25,11 +25,11 @@ namespace Aris.API.Models
         public string start_guids { get; set; }
         public List<Item> items { get; set; }
 
-        public static string JobQueryData()
+        public static string JobQueryData(string personId)
         {
             var jobQuery = new JobQuery
             {
-                start_guids = "34b189b1-3728-11e8-68dc-0a02fcef0a7a",
+                start_guids = personId,
                 items = new List<Item>()
             };
             jobQuery.items.Add(new Item { type = "CONNECTION", direction = "OUT" });

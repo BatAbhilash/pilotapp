@@ -789,3 +789,5 @@ E:\Aris\Services\Aris.API\Aris.API\obj\Debug\Aris.API.dll
 E:\Aris\Services\Aris.API\Aris.API\obj\Debug\Aris.API.pdb
 E:\Aris\Services\Aris.API\Aris.API\bin\Swashbuckle.Core.dll
 E:\Aris\Services\Aris.API\Aris.API\bin\WebActivatorEx.dll
+C:\Users\vicky\Desktop\PilotUIKanaka\CSL\pilotapp\Services\Aris.API\Aris.API\bin\Swashbuckle.Core.dll
+C:\Users\vicky\Desktop\PilotUIKanaka\CSL\pilotapp\Services\Aris.API\Aris.API\bin\WebActivatorEx.dll

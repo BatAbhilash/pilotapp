@@ -2,6 +2,12 @@ using Newtonsoft.Json;
 
 namespace Aris.API.Models.Connections
 {
+  public class MappingList
+  {
+    public System.Collections.Generic.List<Mapping> modelToSave;
+    public string Token;
+  }
+
   public class Mapping
   {
     public string Backup { get; set; }
