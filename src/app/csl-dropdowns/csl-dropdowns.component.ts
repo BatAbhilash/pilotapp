@@ -199,13 +199,14 @@ export class CslDropdownsComponent implements OnInit {
     tableData['HeadId'] = self.response.Supervisors['Id'];
     tableData['PersonId'] = self.response.Person['PersonId'];
 
-    tableData['roleName'] = (self.response.Role.length > 0) ?
-      self.response.Role.map(x => x.RoleName).join(', ') : 'NA';
-
-    tableData['backup'] = (self.response.Backup.length > 0) ?
-      self.response.Backup.map(x => x.Name).join(', ') : 'NA';
-
     if (self.response.Job.length > 0) {
+
+      tableData['roleName'] = (self.response.Role.length > 0) ?
+        self.response.Role.map(x => x.RoleName).join(', ') : 'NA';
+
+      tableData['backup'] = (self.response.Backup.length > 0) ?
+        self.response.Backup.map(x => x.Name).join(', ') : 'NA';
+
       _.forEach(self.response.Job, function (obj) {
         const o = _.cloneDeep(tableData);
         o['jobName'] = obj.JobName;
@@ -219,6 +220,28 @@ export class CslDropdownsComponent implements OnInit {
     } else {
       tableData['jobName'] = 'NA';
       tableData['JobId'] = null;
+      tableData['backup'] = (self.response.Backup.length > 0) ?
+      self.response.Backup.map(x => x.Name).join(', ') : 'NA';
+
+      _.forEach(self.response.Role, function (obj) {
+        const o = _.cloneDeep(tableData);
+        o['roleName'] = obj.RoleName;
+        o['status'] = 'New';
+        o['RoleId'] = obj.RoleId;
+        //  const backupTemp = _.find(self.response.Role, x => x.RoleId === obj.RoleId);
+        // if (backupTemp) {
+        //  o['backup'] = backupTemp['Name'];
+        // } else {
+        //   o['backup'] = 'NA';
+        // }
+
+        if (!(_.find(self.tableContent, o))) {
+          duplicateFlag = false;
+        self.tableContent.push(o);
+        }
+      });
+
+
       if (!(_.find(self.tableContent, tableData))) {
         duplicateFlag = false;
       self.tableContent.push(tableData);
