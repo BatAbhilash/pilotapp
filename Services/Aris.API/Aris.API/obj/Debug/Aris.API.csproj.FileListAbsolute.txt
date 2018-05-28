@@ -787,3 +787,5 @@ E:\Aris\Services\Aris.API\Aris.API\obj\Debug\Aris.API.csproj.CoreCompileInputs.c
 E:\Aris\Services\Aris.API\Aris.API\obj\Debug\Aris.API.csproj.CopyComplete
 E:\Aris\Services\Aris.API\Aris.API\obj\Debug\Aris.API.dll
 E:\Aris\Services\Aris.API\Aris.API\obj\Debug\Aris.API.pdb
+E:\Aris\Services\Aris.API\Aris.API\bin\Swashbuckle.Core.dll
+E:\Aris\Services\Aris.API\Aris.API\bin\WebActivatorEx.dll
