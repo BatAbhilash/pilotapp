@@ -523,3 +523,5 @@ C:\Users\vicky\Desktop\PilotUIKanaka\CSL\pilotapp\Services\Aris.API\Aris.API\bin
 C:\Users\vicky\Desktop\PilotUIKanaka\CSL\pilotapp\Services\Aris.API\Aris.API\bin\Microsoft.AI.ServerTelemetryChannel.xml
 C:\Users\vicky\Desktop\PilotUIKanaka\CSL\pilotapp\Services\Aris.API\Aris.API\bin\Microsoft.AI.WindowsServer.xml
 C:\Users\vicky\Desktop\PilotUIKanaka\CSL\pilotapp\Services\Aris.API\Aris.API\bin\Microsoft.AI.Web.xml
+C:\Users\vicky\Desktop\PilotUIKanaka\CSL\pilotapp\Services\Aris.API\Aris.API\bin\Swashbuckle.Core.dll
+C:\Users\vicky\Desktop\PilotUIKanaka\CSL\pilotapp\Services\Aris.API\Aris.API\bin\WebActivatorEx.dll

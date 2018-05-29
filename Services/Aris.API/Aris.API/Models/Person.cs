@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 
 namespace Aris.API.Models
 {
@@ -19,7 +19,7 @@ namespace Aris.API.Models
 
         public List<Job> Jobs { get; set; }
         public List<Role> Roles { get; set; }
-
-        public string Status { get; set; } = "No Change";
+    public List<Role> JobRelatedRoles { get; set; }
+    public string Status { get; set; } = "No Change";
     }
 }

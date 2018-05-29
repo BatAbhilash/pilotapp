@@ -223,15 +223,29 @@ namespace Aris.API.Controllers
               {
                 var jobToAdd = new Job { JobName = job.JobName, PersonId = job.PersonId, PersonName = job.PersonName };
                 var roleToAdd = new Role { RoleName = role.RoleName, PersonId = job.PersonId, PersonName = job.PersonName };
-
                 var value = Convert.ToString(descendant.item.attributes.Select(i => i.value).FirstOrDefault());
                 var type = descendant.item.typename;
                 if (type == "Organizational unit type")
                 {
+                  var color = GetKnownColor();
                   // this is a job
                   jobToAdd.JobName = value;
                   jobToAdd.JobId = descendant.item.guid;
+                  jobToAdd.Color = color;
                   jobList.Add(jobToAdd);
+
+                  var rolesByJob = GetRolesByJob(token, jobToAdd.Color, jobToAdd.JobId);
+                  foreach (var jobRelatedRole in rolesByJob.JobRoles)
+                  {
+                    // role id,job id, person id
+                    //if (person.JobRelatedRoles == null)
+                    //{
+                    //  person.JobRelatedRoles = new List<Role>();
+                    //}
+                    //person.JobRelatedRoles.Add(jobRelatedRole);
+                    roleList.Add(jobRelatedRole);
+                    //roleList.Add(roleBJ);
+                  }
                 }
                 else if (type == "Role")
                 {
@@ -249,6 +263,17 @@ namespace Aris.API.Controllers
           }
         }
       }
+
+      //foreach (var person in rootObject)
+      //{
+      //  foreach (var job in person.Jobs)
+      //  {
+      //    var color = GetKnownColor();
+      //    var rolesByJob = GetRolesByJob(token, color, job.JobId);
+      //      job.JobRoles = rolesByJob.JobRoles;
+      //   // job.Color = color;
+      //  }
+      //}
 
       if (!string.IsNullOrEmpty(personName))
         return rootObject.Where(i => i.Name.Trim().ToLower() == personName.Trim().ToLower()).ToList();

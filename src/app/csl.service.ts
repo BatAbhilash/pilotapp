@@ -15,9 +15,9 @@ const httpOptions = {
 @Injectable()
 export class CslService {
   toasterService: ToasterService;
-   private apiUrl = 'http://localhost:56272/api/Values/';  // URL to web api
+  //  private apiUrl = 'http://localhost:56272/api/Values/';  // URL to web api
   //  private apiUrl = 'http://192.168.1.114/ArisAPI/api/Values/';  // URL to web api
-  // private apiUrl = 'http://10.10.20.65/ArisAPI/api/Values/';
+  private apiUrl = 'http://10.10.20.65/ArisAPI/api/Values/';
   // globalVars = GlobalVars;
   constructor(private http: HttpClient, toasterService: ToasterService) {
     this.toasterService = toasterService;

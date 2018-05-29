@@ -1,4 +1,4 @@
-import { Component, OnInit, TemplateRef, ViewChild} from '@angular/core';
+import { Component, OnInit, TemplateRef, ViewChild } from '@angular/core';
 import { NgForm } from '@angular/forms';
 import { Http, Response } from '@angular/http';
 import { NgbModal, ModalDismissReasons } from '@ng-bootstrap/ng-bootstrap';
@@ -58,7 +58,7 @@ export class CslDropdownsComponent implements OnInit {
   };
   cslService: CslService;
 
-  constructor(cslService: CslService,  private modalService: BsModalService, toasterService: ToasterService) {
+  constructor(cslService: CslService, private modalService: BsModalService, toasterService: ToasterService) {
     this.cslService = cslService;
     this.toasterService = toasterService;
   }
@@ -208,70 +208,83 @@ export class CslDropdownsComponent implements OnInit {
         o['JobId'] = obj.JobId;
         o['RoleName'] = 'NA';
         o['Backup'] = 'NA';
-       const roleObj = _.filter(self.response.Role, roleX => {
+        const roleObj = _.filter(self.response.Role, roleX => {
           if (roleX.JobId === obj.JobId) {
             return roleX;
           }
         });
 
-          if (roleObj.length > 0) {
-            o['RoleName'] = roleObj.map(x => x.RoleName).join(', ');
-            o['Backup'] = (self.response.Backup.length > 0) ?
-            self.response.Backup.map(x => x.Name).join(', ') : 'NA';
-          }
-        // tableData['RoleName'] = (roleObj.length > 0) ?
-        // roleObj.map(x => x.RoleName).join(', ') : 'NA';
+        if (roleObj.length > 0) {
+          o['RoleName'] = roleObj.map(x => x.RoleName).join(', ');
+          let roleIdObj = _.map(roleObj, x => x.RoleId);
+          roleIdObj = _.compact(roleIdObj);
+          if (roleIdObj.length > 0) {
+            const backupObjs = _.filter(self.response.Backup, x => {
+              if (_.includes(roleIdObj, x.RoleId)) {
+                  return x;
+              }
+             });
+             o['Backup'] = (backupObjs.length > 0) ?
+              backupObjs.map(x => x.Name).join(', ') : 'NA' ;
+            } else {
+              o['Backup'] = 'NA';
+            }
+          } else {
+          o['Backup'] = 'NA';
+        }
 
         if (!(_.find(self.tableContent, o))) {
           duplicateFlag = false;
-        self.tableContent.push(o);
+          self.tableContent.push(o);
         }
       });
     }
     if (self.response.Role.length > 0) {
       _.forEach(self.response.Role, function (obj) {
         if (obj.JobId === null) {
-        const o = _.cloneDeep(tableData);
-        o['RoleName'] = obj.RoleName;
-        o['Status'] = 'New';
-        o['RoleId'] = obj.RoleId;
-        o['JobName'] = 'NA';
-        o['JobId'] = null;
-        if (self.response.Backup.length > 0) {
-        o['Backup'] = self.response.Backup[0]['Name'];
-        o['BackupId'] = self.response.Backup[0]['PersonId'];
-        } else {
-          o['Backup'] = 'NA';
-          o['BackupId'] = 'NA';
-        }
-        const backupTemp = _.find(self.response.Backup, x => {
-          if (x.RoleId === obj.RoleId) {
-            return x;
+          const o = _.cloneDeep(tableData);
+          o['RoleName'] = obj.RoleName;
+          o['Status'] = obj.Status;
+          o['RoleId'] = obj.RoleId;
+          o['JobName'] = 'NA';
+          o['JobId'] = null;
+          if (self.response.Backup.length > 0) {
+            // o['Backup'] = self.response.Backup[0]['Name'];
+            // o['BackupId'] = self.response.Backup[0]['PersonId'];
+            const backupTemp = _.find(self.response.Backup, x => {
+              if (x.RoleId === obj.RoleId) {
+                return x;
+              }
+            });
+            if (backupTemp) {
+              o['Backup'] = backupTemp['Name'];
+              o['BackupId'] = backupTemp['PersonId'];
+            } else {
+              o['Backup'] = 'NA';
+              o['BackupId'] = null;
+            }
+          } else {
+            o['Backup'] = 'NA';
+            o['BackupId'] = 'NA';
           }
-        });
-        // if (backupTemp) {
-        //  o['Backup'] = backupTemp['Name'];
-        //  o['BackupId'] = backupTemp['PersonId'];
-        // } else {
-        //   o['Backup'] = 'NA';
-        // }
-        if (!(_.find(self.tableContent, o))) {
-          duplicateFlag = false;
-        self.tableContent.push(o);
+
+          if (!(_.find(self.tableContent, o))) {
+            duplicateFlag = false;
+            self.tableContent.push(o);
+          }
         }
-      }
       });
       if (tableData['JobName'] !== 'NA' && tableData['RoleName'] !== 'NA') {
-      if (!(_.find(self.tableContent, tableData))) {
-        duplicateFlag = false;
-      self.tableContent.push(tableData);
+        if (!(_.find(self.tableContent, tableData))) {
+          duplicateFlag = false;
+          // self.tableContent.push(tableData);
+        }
       }
-    }
     }
 
     if (!duplicateFlag) {
-    this.clearData();
-    this.csvTableComponent.addRow();
+      this.clearData();
+      this.csvTableComponent.addRow();
     } else {
       this.toasterService.pop('error', 'Warning!', 'Can not add duplicate record!');
     }
@@ -335,6 +348,15 @@ export class CslDropdownsComponent implements OnInit {
 
         self.cslService.getCSLData('GetAllJobs', requestObj)
           .subscribe(obj => {
+            if (self.response.Job.length > 0) {
+            _.each(obj, x => {
+                _.each(self.response.Job, job => {
+                   if (job.JobName === x.JobName) {
+                      x.Color = job.Color;
+                   }
+                  });
+            });
+          }
             self.job = obj;
             self.loading = false;
           }, err => {
@@ -428,7 +450,6 @@ export class CslDropdownsComponent implements OnInit {
             self.roles = obj[0]['Roles'].slice();
             self.selectedRoles = obj[0]['Roles'].slice();
           }
-          console.log(obj);
         }
         self.loading = false;
       }, err => {
@@ -449,13 +470,13 @@ export class CslDropdownsComponent implements OnInit {
     self.cslService.getCSLData('GetRolesByJob', request)
       .subscribe(obj => {
         const temp = self.selectedRoles;
-        _.forEach(obj['JobRoles'], function(o) {
-              o['DisabledField'] = 'true';
-              temp.push(o);
-            });
-              self.roles = temp.slice();
-              self.response.Role = temp.slice();
-              self.selectedRoles = temp.slice();
+        _.forEach(obj['JobRoles'], function (o) {
+          o['DisabledField'] = 'true';
+          temp.push(o);
+        });
+        self.roles = temp.slice();
+        self.response.Role = temp.slice();
+        self.selectedRoles = temp.slice();
         self.loading = false;
       }, err => {
         self.loading = false;
@@ -476,11 +497,11 @@ export class CslDropdownsComponent implements OnInit {
     self.cslService.getCSLData('GetBackupsByRole', requestObject)
       .subscribe(obj => {
         const temp = self.selectedBackups;
-        _.forEach(obj['Backups'], function(o) {
-              o['DisabledField'] = 'true';
-              o['RoleId'] = item['RoleId'];
-              temp.push(o);
-            });
+        _.forEach(obj['Backups'], function (o) {
+          o['DisabledField'] = 'true';
+          o['RoleId'] = item['RoleId'];
+          temp.push(o);
+        });
         self.backup = temp.slice();
         self.response.Backup = temp.slice();
         self.selectedBackups = temp.slice();
@@ -505,14 +526,13 @@ export class CslDropdownsComponent implements OnInit {
         self.onDeselct({}, 'Head');
         temp = _.find(self.supervisors, x => x['Name'] === item);
         self.response.Supervisors = temp;
-         self.getPersonData();
+        self.getPersonData();
         break;
 
       case 'Head':
-        self.onDeselct({}, 'Person');
+        // self.onDeselct({}, 'Person');
         temp = _.find(self.headData, x => x['Name'] === item);
         self.response.Head = temp;
-        // self.getPersonData();
         break;
 
       case 'Person':
@@ -532,6 +552,7 @@ export class CslDropdownsComponent implements OnInit {
 
       case 'Role':
         temp = _.find(self.roles, x => x.RoleName === item);
+        temp['Status'] = 'New';
         self.response.Role.push(temp);
         self.getBackupByRoles();
         break;
@@ -570,16 +591,16 @@ export class CslDropdownsComponent implements OnInit {
       self.persons = [];
     } else if (category === 'Head') {
       self.response.Head = {};
-      self.response.Person = {};
-      self.response.Job = [];
-      self.response.Role = [];
-      self.response.Backup = [];
-      self.selectedJobs = [];
-      self.selectedRoles = [];
-      self.selectedBackups = [];
+      // self.response.Person = {};
+      // self.response.Job = [];
+      // self.response.Role = [];
+      // self.response.Backup = [];
+      // self.selectedJobs = [];
+      // self.selectedRoles = [];
+      // self.selectedBackups = [];
       self.selectedHead = [];
-      self.selectedPersons = [];
-      self.persons = [];
+      // self.selectedPersons = [];
+      // self.persons = [];
     } else if (category === 'Person') {
       self.response.Person = {};
       self.response.Job = [];
@@ -592,7 +613,7 @@ export class CslDropdownsComponent implements OnInit {
       if (_.isEmpty(item)) {
         self.response.Job = [];
       } else {
-         temp = _.find(self.job, x => x['JobName'] === item);
+        temp = _.find(self.job, x => x['JobName'] === item);
         if (temp['PersonName'] === null) {
           _.pull(self.response.Job, temp);
           self.response.Role = _.filter(self.response.Role, x => {
@@ -600,7 +621,7 @@ export class CslDropdownsComponent implements OnInit {
               return x;
             }
           });
-          self.roles =  _.filter(self.response.Role, x => {
+          self.roles = _.filter(self.response.Role, x => {
             if (x.JobId !== temp.JobId) {
               return x;
             }
@@ -611,12 +632,12 @@ export class CslDropdownsComponent implements OnInit {
             }
           });
         } else {
-        _.each(self.job, x => {
-          if (x['JobName'] === item) {
+          _.each(self.job, x => {
+            if (x['JobName'] === item) {
               x['Status'] = 'Deleted';
-          }
-        });
-      }
+            }
+          });
+        }
       }
     } else if (category === 'Role') {
       if (_.isEmpty(item)) {
@@ -624,26 +645,35 @@ export class CslDropdownsComponent implements OnInit {
         self.response.Backup = [];
       } else {
         temp = _.find(self.roles, x => x.RoleName === item);
-        _.pull(self.response.Role, temp);
+        if (temp['PersonName'] === null) {
+          _.pull(self.response.Role, temp);
+
+          self.response.Backup = _.filter(self.response.Backup, x => {
+            if (x.RoleId !== temp.RoleId) {
+              return x;
+            }
+          });
+
+          self.backup = _.filter(self.response.Backup, x => {
+            if (x.RoleId !== temp.RoleId) {
+              return x;
+            }
+          });
+
+          self.selectedBackups = _.filter(self.response.Backup, x => {
+            if (x.RoleId !== temp.RoleId) {
+              return x;
+            }
+          });
+        } else {
+          _.each(self.roles, x => {
+            if (x['RoleName'] === item) {
+              x['Status'] = 'Deleted';
+            }
+          });
+        }
       }
 
-      self.response.Backup = _.filter(self.response.Backup, x => {
-        if (x.RoleId !== temp.RoleId) {
-          return x;
-        }
-      });
-
-      self.backup = _.filter(self.response.Backup, x => {
-        if (x.RoleId !== temp.RoleId) {
-          return x;
-        }
-      });
-
-      self.selectedBackups = _.filter(self.response.Backup, x => {
-        if (x.RoleId !== temp.RoleId) {
-          return x;
-        }
-      });
     } else if (category === 'Backup') {
       if (_.isEmpty(item)) {
         self.response.Backup = [];
