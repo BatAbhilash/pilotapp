@@ -532,7 +532,7 @@ namespace Aris.API.Controllers
           };
 
 
-          var modelConnectionBackup = new Models.Connections.Modelconnection { kind = "MODELCONNECTION", type = 61, source_occid = "#1", target_occid = "#2" };
+          var modelConnectionBackup = new Models.Connections.Modelconnection { kind = "MODELCONNECTION", type = 61, source_occid = "#2", target_occid = "#1" };
 
           var createdConnectionBackup = new CreateConnection
           {

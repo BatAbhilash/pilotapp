@@ -6,7 +6,7 @@ by editing this MSBuild file. In order to learn more about this please visit htt
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
     <TimeStampOfAssociatedLegacyPublishXmlFile />
-    <_PublishTargetUrl>C:\Users\vicky\Desktop\publishAris</_PublishTargetUrl>
+    <_PublishTargetUrl>C:\Users\vicky\Desktop\Aris Builds\service\Version-0.0.0.5</_PublishTargetUrl>
   </PropertyGroup>
   <ItemGroup>
     <File Include="ApiConfigs/CreateApi.xml">
@@ -103,10 +103,10 @@ by editing this MSBuild file. In order to learn more about this please visit htt
       <publishTime>05/21/2018 19:00:49</publishTime>
     </File>
     <File Include="bin/Aris.API.dll">
-      <publishTime>05/29/2018 16:18:11</publishTime>
+      <publishTime>05/29/2018 18:20:23</publishTime>
     </File>
     <File Include="bin/Aris.API.pdb">
-      <publishTime>05/29/2018 16:18:11</publishTime>
+      <publishTime>05/29/2018 18:20:23</publishTime>
     </File>
     <File Include="bin/Elmah.dll">
       <publishTime>05/21/2018 19:00:53</publishTime>

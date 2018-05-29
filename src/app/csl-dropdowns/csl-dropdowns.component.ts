@@ -486,7 +486,8 @@ export class CslDropdownsComponent implements OnInit {
   getBackupByRoles() {
     const self = this;
     self.loading = true;
-    const item = _.last(self.response.Role);
+   // const item = _.last(self.response.Role);
+    _.each(self.response.Role, item => {
     const requestObject = {
       'RoleId': item['RoleId'],
       'RoleName': item['RoleName'],
@@ -496,12 +497,13 @@ export class CslDropdownsComponent implements OnInit {
 
     self.cslService.getCSLData('GetBackupsByRole', requestObject)
       .subscribe(obj => {
-        const temp = self.selectedBackups;
+        let temp = self.selectedBackups;
         _.forEach(obj['Backups'], function (o) {
           o['DisabledField'] = 'true';
           o['RoleId'] = item['RoleId'];
           temp.push(o);
         });
+        temp = _.uniq(temp);
         self.backup = temp.slice();
         self.response.Backup = temp.slice();
         self.selectedBackups = temp.slice();
@@ -509,6 +511,7 @@ export class CslDropdownsComponent implements OnInit {
       }, err => {
         self.loading = false;
       });
+    });
   }
 
   onCheckboxSelect(item, category) {
@@ -559,6 +562,8 @@ export class CslDropdownsComponent implements OnInit {
 
       case 'Backup':
         temp = _.find(self.backup, x => x.Name === item);
+        const lstRole = _.last(self.response.Role);
+        temp['RoleId'] = lstRole.RoleId;
         self.response.Backup.push(temp);
         break;
     }
