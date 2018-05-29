@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<root>
+  <kinds>
+    <kind>OBJECT</kind>
+  </kinds>
+  <typefilters>
+    <typefilter>78</typefilter>
+  </typefilters>
+  <defsymbolfilters>
+    <defsymbolfilter>80f76b81-35b8-11e3-51cf-c1dbe7832b20</defsymbolfilter>
+  </defsymbolfilters>
+</root>

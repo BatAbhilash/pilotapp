@@ -5,7 +5,6 @@ using Aris.API.Models.Connections;
 using Aris.API.Models.Connections.Occ;
 using LocationPersonModel;
 using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -987,84 +986,6 @@ public class UserSession : IUserSession
   }
 }
 
-public class RolePeopleMapping
-{
-  public double Id { get; set; }
-
-  public string Employee_ID { get; set; }
-
-  public string First_Name { get; set; }
-
-  public string Last_Name { get; set; }
-
-  public string Email { get; set; }
-
-  public string Level_1_Mgr { get; set; }
-
-  public string Title { get; set; }
-
-  public string Level_1_Mgr_ID { get; set; }
-
-  public string Country { get; set; }
-
-  public string Location { get; set; }
-
-  public string Full_Name { get; set; }
-
-  public string Supervisory_Organization { get; set; }
-
-  public string Job_Family_Group { get; set; }
-
-  public string Job_Family { get; set; }
-
-  public string Cost_Center { get; set; }
-
-  public string Business_Role { get; set; }
-
-  public string Business_Role_Overview { get; set; }
-
-  public string Business_Process { get; set; }
-
-  public string Function { get; set; }
-
-  public string Comments { get; set; }
-
-  public string Backup { get; set; }
-
-  public string Mapping_Status { get; set; }
-
-  public string Mapper { get; set; }
-
-  public string Mapper_ID { get; set; }
-
-  public string Mapper_Stamp { get; set; }
-
-  public string Approver_ID { get; set; }
-
-  public string Approver_Stamp { get; set; }
-
-  public string Training_Status { get; set; }
-}
-
-namespace DatabaseModel
-{
-  public class Item
-  {
-    public string kind { get; set; }
-    public string name { get; set; }
-    public bool isversioned { get; set; }
-    public string maingroup_guid { get; set; }
-  }
-
-  public class RootObject
-  {
-    public string kind { get; set; }
-    public string request { get; set; }
-    public string status { get; set; }
-    public int item_count { get; set; }
-    public List<Item> items { get; set; }
-  }
-}
 
 namespace LocationPersonModel
 {
