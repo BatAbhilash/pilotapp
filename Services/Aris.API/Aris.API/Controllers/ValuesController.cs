@@ -109,6 +109,11 @@ namespace Aris.API.Controllers
       return tokenDetails["token"];
     }
 
+    /// <summary>
+    /// Gets the location, supervisor and the team lead information
+    /// </summary>
+    /// <param name="model">Model to pass the token and other filter parameters</param>
+    /// <returns>A data class object with location, supervisor and teamleads list in it</returns>
     [HttpPost]
     [Route("api/Values/Location")]
     public Data Location([FromBody] TokenModel model)
@@ -640,22 +645,8 @@ namespace Aris.API.Controllers
       var locations = new List<Location>();
       var supervisors = new List<Supervisor>();
       var teamLeads = new List<TeamLead>();
-
-      var data = new LocationPerson();
-
-      using (var client = new HttpClient())
-      {
-        client.DefaultRequestHeaders.Clear();
-        client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-        client.DefaultRequestHeaders.Add("Authorization", "UMC " + token);
-
-        const string url = "http://10.10.20.65:90/abs/api/databases/.CSL%20Behring_DEV/find?kind=OBJECT&methodfilter=17658890-ea42-11e6-21fb-0acb454164fe&attributes=1%2C1243%2C3757%2C8de0d080-4df4-11e8-3e7a-0296de82851c%2C%20&attributes=967c08d1-4f71-11e8-6a1e-d89d672712a8%2C75d2ad01-4f71-11e8-6a1e-d89d672712a8&attrfilter=8de0d080-4df4-11e8-3e7a-0296de82851c%20%2B";
-        var response = client.GetAsync(url).Result;
-        if (response.IsSuccessStatusCode)
-        {
-          data = GetData<LocationPerson>(response);
-        }
-      }
+      const string url = "http://10.10.20.65:90/abs/api/databases/.CSL%20Behring_DEV/find?kind=OBJECT&methodfilter=17658890-ea42-11e6-21fb-0acb454164fe&attributes=1%2C1243%2C3757%2C8de0d080-4df4-11e8-3e7a-0296de82851c%2C%20&attributes=967c08d1-4f71-11e8-6a1e-d89d672712a8%2C75d2ad01-4f71-11e8-6a1e-d89d672712a8&attrfilter=8de0d080-4df4-11e8-3e7a-0296de82851c%20%2B";
+      var data = GetResponse<LocationPerson>(token, url);
 
       foreach (var item in data.items)
       {
@@ -764,25 +755,14 @@ namespace Aris.API.Controllers
     List<Role> GetAllRoles(string token)
     {
       var roles = new List<Role>();
-      var data = new Models.RoleHelper.RoleMapper();
-      using (var client = new HttpClient())
-      {
-        client.DefaultRequestHeaders.Clear();
-        client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-        client.DefaultRequestHeaders.Add("Authorization", "UMC " + token);
-
-        const string url = "http://10.10.20.65:90/abs/api/databases/.CSL%20Behring_DEV/find?kind=OBJECT&typefilter=78&defsymbolfilter=80f76b81-35b8-11e3-51cf-c1dbe7832b20";
-        var response = client.GetAsync(url).Result;
-        if (response.IsSuccessStatusCode)
-        {
-          data = GetData<Models.RoleHelper.RoleMapper>(response);
-        }
-      }
+      const string url = "http://10.10.20.65:90/abs/api/databases/.CSL%20Behring_DEV/find?kind=OBJECT&typefilter=78&defsymbolfilter=80f76b81-35b8-11e3-51cf-c1dbe7832b20";
+      var data = GetResponse<Models.RoleHelper.RoleMapper>(token, url);
 
       foreach (var item in data.items)
       {
         var color = GetKnownColor();
         var guid = item.guid;
+
         foreach (var attribute in item.attributes)
         {
           var roleName = attribute.value;
@@ -795,23 +775,10 @@ namespace Aris.API.Controllers
 
     List<Job> GetAllJobs(string token)
     {
-      var jobs = new List<Aris.API.Models.Job>();
+      var jobs = new List<Job>();
 
-      var data = new Aris.API.Models.JobHelper.JobMapper();
-      using (var client = new HttpClient())
-      {
-        client.DefaultRequestHeaders.Clear();
-        client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-        client.DefaultRequestHeaders.Add("Authorization", "UMC " + token);
-
-        const string url = "http://10.10.20.65:90/abs/api/databases/.CSL%20Behring_DEV/find?kind=OBJECT&typefilter=44&defsymbolfilter=299";
-        var response = client.GetAsync(url).Result;
-        if (response.IsSuccessStatusCode)
-        {
-          data = GetData<Aris.API.Models.JobHelper.JobMapper>(response);
-        }
-
-      }
+      const string url = "http://10.10.20.65:90/abs/api/databases/.CSL%20Behring_DEV/find?kind=OBJECT&typefilter=44&defsymbolfilter=299";
+      var data = GetResponse<Models.JobHelper.JobMapper>(token, url);
 
       foreach (var item in data.items)
       {
@@ -830,22 +797,8 @@ namespace Aris.API.Controllers
     List<Person> GetAllBackups(string token)
     {
       var persons = new List<Person>();
-
-      var data = new LocationPerson();
-      using (var client = new HttpClient())
-      {
-        client.DefaultRequestHeaders.Clear();
-        client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-        client.DefaultRequestHeaders.Add("Authorization", "UMC " + token);
-
-        const string url = "http://10.10.20.65:90/abs/api/databases/.CSL%20Behring_DEV/find?kind=OBJECT&typefilter=46&defsymbolfilter=2";
-        var response = client.GetAsync(url).Result;
-        if (response.IsSuccessStatusCode)
-        {
-          data = GetData<LocationPerson>(response);
-        }
-
-      }
+      const string url = "http://10.10.20.65:90/abs/api/databases/.CSL%20Behring_DEV/find?kind=OBJECT&typefilter=46&defsymbolfilter=2";
+      var data = GetResponse<LocationPerson>(token, url);
 
       foreach (var item in data.items)
       {
@@ -871,15 +824,15 @@ namespace Aris.API.Controllers
       };
       if (string.IsNullOrWhiteSpace(token))
         return rootObject;
+      
+      var jsonPost = "{ \"start_guids\": \" " + jobId + " \",   \"items\": [ {  \"type\": \"CONNECTION\",  \"direction\": \"OUT\",  \"items\": [{ \"type\": \"OBJECT\", \"typenum\": \"78\", \"function\": \"TARGET\" } ] }  ] }";
 
       using (var client = new HttpClient())
       {
         client.DefaultRequestHeaders.Clear();
         client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
         client.DefaultRequestHeaders.Add("Authorization", "UMC " + token);
-
-        var jsonPost = "{ \"start_guids\": \" " + jobId + " \",   \"items\": [ {  \"type\": \"CONNECTION\",  \"direction\": \"OUT\",  \"items\": [{ \"type\": \"OBJECT\", \"typenum\": \"78\", \"function\": \"TARGET\" } ] }  ] }";
-
+        
         using (var stringContent = new StringContent(jsonPost, Encoding.UTF8, "application/json"))
         {
           var response = client.PostAsync("http://10.10.20.65:90/abs/api/objects/.CSL%20Behring_DEV/query", stringContent).Result;
