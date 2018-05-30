@@ -670,58 +670,89 @@ namespace Aris.API.Controllers
       var locations = new List<Location>();
       var supervisors = new List<Supervisor>();
       var teamLeads = new List<TeamLead>();
-      const string url = "http://10.10.20.65:90/abs/api/databases/.CSL%20Behring_DEV/find?kind=OBJECT&methodfilter=17658890-ea42-11e6-21fb-0acb454164fe&attributes=1%2C1243%2C3757%2C8de0d080-4df4-11e8-3e7a-0296de82851c%2C%20&attributes=967c08d1-4f71-11e8-6a1e-d89d672712a8%2C75d2ad01-4f71-11e8-6a1e-d89d672712a8&attrfilter=8de0d080-4df4-11e8-3e7a-0296de82851c%20%2B";
-      var data = GetResponse<LocationPerson>(token, url);
-
-      foreach (var item in data.items)
+      var data = new LocationPerson();
+      var nextpageToken = string.Empty;
+      var url = string.Empty;
+      do
       {
-        var location_Name = string.Empty;
-        var supervisorName = string.Empty;
-        var teamLeadName = string.Empty;
-        var locationId = string.Empty;
-        var supervisorId = string.Empty;
-        var teamLeadId = string.Empty;
-
-        foreach (var attribute in item.attributes)
+        if (string.IsNullOrEmpty(nextpageToken))
         {
-          switch (attribute.typename)
+          url = "http://10.10.20.65:90/abs/api/databases/.CSL%20Behring_DEV/find?kind=OBJECT&methodfilter=17658890-ea42-11e6-21fb-0acb454164fe&attributes=1%2C1243%2C3757%2C8de0d080-4df4-11e8-3e7a-0296de82851c%2C%20&attributes=967c08d1-4f71-11e8-6a1e-d89d672712a8%2C75d2ad01-4f71-11e8-6a1e-d89d672712a8&attrfilter=8de0d080-4df4-11e8-3e7a-0296de82851c%20%2B&pagesize=500";
+        }
+        else
+        {
+          url = "http://10.10.20.65:90/abs/api/databases/.CSL%20Behring_DEV/find?kind=OBJECT&methodfilter=17658890-ea42-11e6-21fb-0acb454164fe&attributes=1%2C1243%2C3757%2C8de0d080-4df4-11e8-3e7a-0296de82851c%2C%20&attributes=967c08d1-4f71-11e8-6a1e-d89d672712a8%2C75d2ad01-4f71-11e8-6a1e-d89d672712a8&attrfilter=8de0d080-4df4-11e8-3e7a-0296de82851c%20%2B&pagesize=500&pagetoken="+ nextpageToken + "";
+        }
+        
+        data = GetResponse<LocationPerson>(token, url);
+        nextpageToken = data.next_pagetoken;
+        foreach (var item in data.items)
+        {
+          var location_Name = string.Empty;
+          var supervisorName = string.Empty;
+          var teamLeadName = string.Empty;
+          var locationId = string.Empty;
+          var supervisorId = string.Empty;
+          var teamLeadId = string.Empty;
+
+          foreach (var attribute in item.attributes)
           {
-            case "CSL Location":
-              location_Name = attribute.value;
-              locationId = attribute.type_guid;
-              break;
-            case "CSL Team Lead":
-              teamLeadName = attribute.value;
-              teamLeadId = attribute.type_guid;
-              break;
-            case "CSL Supervisor":
-              supervisorName = attribute.value;
-              supervisorId = attribute.type_guid;
-              break;
-            default:
-              break;
+            switch (attribute.typename)
+            {
+              case "CSL Location":
+                location_Name = attribute.value;
+                locationId = attribute.type_guid;
+                break;
+              case "CSL Team Lead":
+                teamLeadName = attribute.value;
+                teamLeadId = attribute.type_guid;
+                break;
+              case "CSL Supervisor":
+                supervisorName = attribute.value;
+                supervisorId = attribute.type_guid;
+                break;
+              default:
+                break;
+            }
+          }
+
+          if (!locations.Any(i => i.Name.Trim().ToLower() == location_Name.Trim().ToLower()))
+          {
+            locations.Add(new Location { Id = locationId, Name = location_Name, Color = "white" });
+          }
+
+          if (!supervisors.Any(i => i.Name.Trim().ToLower() == supervisorName.Trim().ToLower()))
+          {
+            supervisors.Add(new Supervisor { Id = supervisorId, Name = supervisorName, Color = "white" });
+          }
+
+          if (!teamLeads.Any(i => i.Name.Trim().ToLower() == teamLeadName.Trim().ToLower()))
+          {
+            teamLeads.Add(new TeamLead { Id = teamLeadId, Name = teamLeadName, Color = "white" });
           }
         }
 
-        if (!locations.Any(i => i.Name.Trim().ToLower() == location_Name.Trim().ToLower()))
+        //objData.Locations = locations.OrderBy(i => i.Name).ToList();
+        //objData.Supervisors = supervisors.OrderBy(i => i.Name).ToList();
+        //objData.TeamLeads = teamLeads.OrderBy(i => i.Name).ToList();
+        if (objData.Locations == null)
         {
-          locations.Add(new Location { Id = locationId, Name = location_Name, Color = "white" });
+          objData.Locations = new List<Location>();
         }
-
-        if (!supervisors.Any(i => i.Name.Trim().ToLower() == supervisorName.Trim().ToLower()))
+        if (objData.Supervisors == null)
         {
-          supervisors.Add(new Supervisor { Id = supervisorId, Name = supervisorName, Color = "white" });
+          objData.Supervisors = new List<Supervisor>();
         }
-
-        if (!teamLeads.Any(i => i.Name.Trim().ToLower() == teamLeadName.Trim().ToLower()))
+        if (objData.TeamLeads == null)
         {
-          teamLeads.Add(new TeamLead { Id = teamLeadId, Name = teamLeadName, Color = "white" });
+          objData.TeamLeads = new List<TeamLead>();
         }
-      }
+        objData.Locations.AddRange(locations.OrderBy(i => i.Name).ToList());
+        objData.Supervisors.AddRange(supervisors.OrderBy(i => i.Name).ToList());
+        objData.TeamLeads.AddRange(teamLeads.OrderBy(i => i.Name).ToList());
 
-      objData.Locations = locations.OrderBy(i => i.Name).ToList();
-      objData.Supervisors = supervisors.OrderBy(i => i.Name).ToList();
-      objData.TeamLeads = teamLeads.OrderBy(i => i.Name).ToList();
+      } while (!string.IsNullOrEmpty(data.next_pagetoken));
+      
 
       return objData;
     }
@@ -729,50 +760,64 @@ namespace Aris.API.Controllers
     List<Person> GetPersons(string url, string token, string locationName, string supervisorName)
     {
       var persons = new List<Person>();
-      var url1 = "http://10.10.20.65:90/abs/api/databases/.CSL%20Behring_DEV/find?kind=OBJECT&methodfilter=17658890-ea42-11e6-21fb-0acb454164fe&attributes=1%2C1243%2C3757%2C8de0d080-4df4-11e8-3e7a-0296de82851c%2C967c08d1-4f71-11e8-6a1e-d89d672712a8%2C75d2ad01-4f71-11e8-6a1e-d89d672712a8&typefilter=46&attrfilter=8de0d080-4df4-11e8-3e7a-0296de82851c%20%2B";
-      var data = GetResponse<LocationPerson>(token, url1);
-
-      foreach (var item in data.items)
+      var nextPageToken = string.Empty;
+      var url1 = string.Empty;
+      do
       {
-        var personId = item.guid;
-        var location_Name = string.Empty;
-        var supervisor_Name = string.Empty;
-        var personName = string.Empty;
-        var teamLeadName = string.Empty;
-
-        foreach (var attribute in item.attributes)
+        if (string.IsNullOrEmpty(nextPageToken))
         {
-          if (attribute.typename == "CSL Location")
-          {
-            location_Name = attribute.value;
-          }
-          else if (attribute.typename == "CSL Team Lead")
-          {
-            teamLeadName = attribute.value;
-          }
-          else if (attribute.typename == "CSL Supervisor")
-          {
-            supervisor_Name = attribute.value;
-          }
-          else if (attribute.typename == "Name")
-          {
-            personName = attribute.value;
-          }
+          url1 = "http://10.10.20.65:90/abs/api/databases/.CSL%20Behring_DEV/find?kind=OBJECT&methodfilter=17658890-ea42-11e6-21fb-0acb454164fe&attributes=1%2C1243%2C3757%2C8de0d080-4df4-11e8-3e7a-0296de82851c%2C967c08d1-4f71-11e8-6a1e-d89d672712a8%2C75d2ad01-4f71-11e8-6a1e-d89d672712a8&typefilter=46&attrfilter=8de0d080-4df4-11e8-3e7a-0296de82851c%20%2B&pagesize=500";
         }
+        else
+        {
+          url1 = "http://10.10.20.65:90/abs/api/databases/.CSL%20Behring_DEV/find?kind=OBJECT&methodfilter=17658890-ea42-11e6-21fb-0acb454164fe&attributes=1%2C1243%2C3757%2C8de0d080-4df4-11e8-3e7a-0296de82851c%2C967c08d1-4f71-11e8-6a1e-d89d672712a8%2C75d2ad01-4f71-11e8-6a1e-d89d672712a8&typefilter=46&attrfilter=8de0d080-4df4-11e8-3e7a-0296de82851c%20%2B&pagesize=500&pagetoken=" + nextPageToken + "";
+        }
+      
+        var data = GetResponse<LocationPerson>(token, url1);
+        nextPageToken = data.next_pagetoken;
+        foreach (var item in data.items)
+        {
+          var personId = item.guid;
+          var location_Name = string.Empty;
+          var supervisor_Name = string.Empty;
+          var personName = string.Empty;
+          var teamLeadName = string.Empty;
 
-        //if (string.IsNullOrEmpty(Convert.ToString(location_Name))
-        //    || string.IsNullOrEmpty(Convert.ToString(supervisor_Name))
-        //    || string.IsNullOrEmpty(Convert.ToString(personName))
-        //    )
-        //{
-        //    continue;
-        //}
+          foreach (var attribute in item.attributes)
+          {
+            if (attribute.typename == "CSL Location")
+            {
+              location_Name = attribute.value;
+            }
+            else if (attribute.typename == "CSL Team Lead")
+            {
+              teamLeadName = attribute.value;
+            }
+            else if (attribute.typename == "CSL Supervisor")
+            {
+              supervisor_Name = attribute.value;
+            }
+            else if (attribute.typename == "Name")
+            {
+              personName = attribute.value;
+            }
+          }
 
-        var person = new Person { PersonId = personId, Name = personName, LocationName = location_Name, SupervisorName = supervisor_Name };
-        person.HasMapping = string.Equals(person.LocationName, locationName, StringComparison.OrdinalIgnoreCase) &&
-                            string.Equals(person.SupervisorName, supervisorName, StringComparison.OrdinalIgnoreCase);
-        persons.Add(person);
-      }
+          //if (string.IsNullOrEmpty(Convert.ToString(location_Name))
+          //    || string.IsNullOrEmpty(Convert.ToString(supervisor_Name))
+          //    || string.IsNullOrEmpty(Convert.ToString(personName))
+          //    )
+          //{
+          //    continue;
+          //}
+
+          var person = new Person { PersonId = personId, Name = personName, LocationName = location_Name, SupervisorName = supervisor_Name };
+          person.HasMapping = string.Equals(person.LocationName, locationName, StringComparison.OrdinalIgnoreCase) &&
+                              string.Equals(person.SupervisorName, supervisorName, StringComparison.OrdinalIgnoreCase);
+          persons.Add(person);
+        }
+      } while (!string.IsNullOrEmpty(nextPageToken));
+      
 
       return persons.Distinct().ToList();
     }
@@ -780,20 +825,35 @@ namespace Aris.API.Controllers
     List<Role> GetAllRoles(string token)
     {
       var roles = new List<Role>();
-      const string url = "http://10.10.20.65:90/abs/api/databases/.CSL%20Behring_DEV/find?kind=OBJECT&typefilter=78&defsymbolfilter=80f76b81-35b8-11e3-51cf-c1dbe7832b20";
-      var data = GetResponse<Models.RoleHelper.RoleMapper>(token, url);
-
-      foreach (var item in data.items)
+      var url = string.Empty;
+      var nextPageToken = string.Empty;
+      do
       {
-        var color = GetKnownColor();
-        var guid = item.guid;
-
-        foreach (var attribute in item.attributes)
+        if (string.IsNullOrEmpty(nextPageToken))
         {
-          var roleName = attribute.value;
-          roles.Add(new Role { RoleId = guid, RoleName = roleName, Color = color });
+          url = "http://10.10.20.65:90/abs/api/databases/.CSL%20Behring_DEV/find?kind=OBJECT&typefilter=78&defsymbolfilter=80f76b81-35b8-11e3-51cf-c1dbe7832b20&pagesize=500";
         }
-      }
+        else
+        {
+          url = "http://10.10.20.65:90/abs/api/databases/.CSL%20Behring_DEV/find?kind=OBJECT&typefilter=78&defsymbolfilter=80f76b81-35b8-11e3-51cf-c1dbe7832b20&pagesize=500&pagetoken=" + nextPageToken + "";
+        }
+          
+        var data = GetResponse<Models.RoleHelper.RoleMapper>(token, url);
+        nextPageToken = data.next_pagetoken;
+        foreach (var item in data.items)
+        {
+          var color = GetKnownColor();
+          var guid = item.guid;
+
+          foreach (var attribute in item.attributes)
+          {
+            var roleName = attribute.value;
+            roles.Add(new Role { RoleId = guid, RoleName = roleName, Color = color });
+          }
+        }
+
+      } while (!string.IsNullOrEmpty(nextPageToken));
+      
 
       return roles.Distinct().ToList();
     }
@@ -801,40 +861,69 @@ namespace Aris.API.Controllers
     List<Job> GetAllJobs(string token)
     {
       var jobs = new List<Job>();
-
-      const string url = "http://10.10.20.65:90/abs/api/databases/.CSL%20Behring_DEV/find?kind=OBJECT&typefilter=44&defsymbolfilter=299";
-      var data = GetResponse<Models.JobHelper.JobMapper>(token, url);
-
-      foreach (var item in data.items)
+      var nextpageToken = string.Empty;
+      var url = string.Empty;
+      do
       {
-        var color = GetKnownColor();
-        var guid = item.guid;
-        foreach (var attribute in item.attributes)
+        if (string.IsNullOrEmpty(nextpageToken))
         {
-          var jobName = attribute.value;
-          jobs.Add(new Aris.API.Models.Job { JobId = guid, JobName = jobName, Color = color });
+          url = "http://10.10.20.65:90/abs/api/databases/.CSL%20Behring_DEV/find?kind=OBJECT&typefilter=44&defsymbolfilter=299&pagesize=500";
         }
-      }
+        else
+        {
+          url = "http://10.10.20.65:90/abs/api/databases/.CSL%20Behring_DEV/find?kind=OBJECT&typefilter=44&defsymbolfilter=299&pagesize=500&pagetoken=" + nextpageToken + "";
+        }
+          
+        var data = GetResponse<Models.JobHelper.JobMapper>(token, url);
 
-      return jobs.Distinct().ToList();
+        nextpageToken = data.next_pagetoken;
+
+        foreach (var item in data.items)
+        {
+          var color = GetKnownColor();
+          var guid = item.guid;
+          foreach (var attribute in item.attributes)
+          {
+            var jobName = attribute.value;
+            jobs.Add(new Aris.API.Models.Job { JobId = guid, JobName = jobName, Color = color });
+          }
+        }
+
+        return jobs.Distinct().ToList();
+      } while (true);
+      
     }
 
     List<Person> GetAllBackups(string token)
     {
       var persons = new List<Person>();
-      const string url = "http://10.10.20.65:90/abs/api/databases/.CSL%20Behring_DEV/find?kind=OBJECT&typefilter=46&defsymbolfilter=2";
-      var data = GetResponse<LocationPerson>(token, url);
-
-      foreach (var item in data.items)
+      var url = string.Empty;
+      var nextPageToken = string.Empty;
+      do
       {
-        var guid = item.guid;
-
-        foreach (var attribute in item.attributes)
+        if (string.IsNullOrEmpty(nextPageToken))
         {
-          var backupName = attribute.value;
-          persons.Add(new Person { Name = backupName, PersonId = guid });
+          url = "http://10.10.20.65:90/abs/api/databases/.CSL%20Behring_DEV/find?kind=OBJECT&typefilter=46&defsymbolfilter=2&pagesize=500";
         }
-      }
+        else
+        {
+          url = "http://10.10.20.65:90/abs/api/databases/.CSL%20Behring_DEV/find?kind=OBJECT&typefilter=46&defsymbolfilter=2&pagesize=500&pagetoken=" + nextPageToken + "";
+        }
+        
+        var data = GetResponse<LocationPerson>(token, url);
+        nextPageToken = data.next_pagetoken;
+        foreach (var item in data.items)
+        {
+          var guid = item.guid;
+
+          foreach (var attribute in item.attributes)
+          {
+            var backupName = attribute.value;
+            persons.Add(new Person { Name = backupName, PersonId = guid });
+          }
+        }
+      } while (!string.IsNullOrEmpty(nextPageToken));
+
 
       return persons.Distinct().ToList();
     }

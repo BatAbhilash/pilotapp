@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Web;
@@ -43,6 +43,7 @@ namespace Aris.API.Models.JobHelper
         public string request { get; set; }
         public string status { get; set; }
         public int item_count { get; set; }
-        public List<Item> items { get; set; }
+    public string next_pagetoken { get; set; }
+    public List<Item> items { get; set; }
     }
 }
