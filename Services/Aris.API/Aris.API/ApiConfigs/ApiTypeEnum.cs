@@ -14,5 +14,16 @@ namespace Aris.API.ApiConfigs
     DeleteData,
     [Description("~/ApiConfigs/ModelConnectionApi.xml")]
     ModelConnection,
+
+    BackupsByRole,
+
+    RolesByJob,
+    [Description("~/ApiConfigs/AllBackups.xml")]
+    AllBackups,
+    [Description("~/ApiConfigs/AllJobs.xml")]
+    AllJobs,
+    [Description("~/ApiConfigs/AllRoles.xml")]
+    AllRoles,
+    Jobs
   }
 }

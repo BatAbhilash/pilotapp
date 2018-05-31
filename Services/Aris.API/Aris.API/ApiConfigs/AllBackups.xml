@@ -9,4 +9,7 @@
   <defsymbolfilters>
     <defsymbolfilter>2</defsymbolfilter>
   </defsymbolfilters>
+  <pagesizes>
+    <pagesize>500</pagesize>
+  </pagesizes>
 </root>

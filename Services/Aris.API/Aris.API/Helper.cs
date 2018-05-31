@@ -6,6 +6,7 @@ using System.Data;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Reflection;
+using System.Text;
 
 namespace Aris.API
 {
@@ -136,9 +137,38 @@ namespace Aris.API
         return jsonContent;
       }
     }
-  }
 
-  public enum HttpTypeEnum
+    /// <summary>
+    /// Gets the reponse returned from the HTTP Post method
+    /// </summary>
+    /// <typeparam name="T">Class type to be parsed</typeparam>
+    /// <param name="token">token to be passed to get the data</param>
+    /// <param name="url">Url to hit the http post</param>
+    /// <param name="content">Content to be posted in the url</param>
+    /// <returns>Class object</returns>
+    public static T GetPostResponse<T>(string token, string url, string content)
+    {
+      var jsonContent = string.Empty;
+      using (var client = GetClient(token))
+      {
+        var stringContent = new StringContent(content, Encoding.UTF8, "application/json");
+        var response = new HttpResponseMessage();
+        response = client.PostAsync(url, stringContent).Result;
+        if (response.IsSuccessStatusCode)
+        {
+          jsonContent = response.Content.ReadAsStringAsync().Result;
+        }
+
+        var data = GetData<T>(response);
+        return data;
+      }
+    }
+  }
+}
+
+
+
+public enum HttpTypeEnum
   {
     Post,
     Put,

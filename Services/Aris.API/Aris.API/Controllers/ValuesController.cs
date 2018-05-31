@@ -172,108 +172,81 @@ namespace Aris.API.Controllers
     public List<Person> Jobs([FromBody] TokenModel model)
     {
       var token = model.Token;
-      //var teamLeadName = model.TeamLeadName;
       var personName = model.PersonName;
       var rootObject = new List<Person>();
       if (string.IsNullOrWhiteSpace(token))
         return rootObject;
 
-
-      using (var client = new HttpClient())
+      var url = ApiHelper.UrlBuilder(ApiTypeEnum.Jobs);
+      var jsonPost = JobQuery.JobQueryData(model.PersonId);
+      var data = GetPostResponse<JobRole>(token, url, jsonPost);
+      var organizationalUnit = "Organizational unit type".Trim().ToLower();
+      foreach (var obj in data.items)
       {
-        client.DefaultRequestHeaders.Clear();
-        client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-        client.DefaultRequestHeaders.Add("Authorization", "UMC " + token);
-
-        var jsonPost = JobQuery.JobQueryData(model.PersonId);
-
-        using (var stringContent = new StringContent(jsonPost, Encoding.UTF8, "application/json"))
+        var jobList = new List<Job>();
+        var roleList = new List<Role>();
+        var person = new Person
         {
-          var response = client.PostAsync("http://10.10.20.65:90/abs/api/objects/.CSL%20Behring_DEV/query", stringContent).Result;
-          if (response.IsSuccessStatusCode)
+          PersonId = obj.item.guid,
+          Name = Convert.ToString(obj.item.attributes.Select(i => i.value).FirstOrDefault()),
+          LocationName = model.LocationName,
+          TeamLeadName = model.TeamLeadName,
+          SupervisorName = model.SupervisorName,
+        };
+
+        var job = new Job
+        {
+          PersonId = person.PersonId,
+          PersonName = person.Name
+        };
+
+        var role = new Role
+        {
+          PersonId = person.PersonId,
+          PersonName = person.Name
+        };
+
+        foreach (var descendant in obj.descendants)
+        {
+          var jobToAdd = new Job { JobName = job.JobName, PersonId = job.PersonId, PersonName = job.PersonName };
+          var roleToAdd = new Role { RoleName = role.RoleName, PersonId = job.PersonId, PersonName = job.PersonName };
+          var value = Convert.ToString(descendant.item.attributes.Select(i => i.value).FirstOrDefault());
+          var type = descendant.item.typename;
+          if (type == "Organizational unit type")
           {
-            var data = GetData<JobRole>(response);
-            var organizationalUnit = "Organizational unit type".Trim().ToLower();
-            foreach (var obj in data.items)
+            var color = GetKnownColor();
+            // this is a job
+            jobToAdd.JobName = value;
+            jobToAdd.JobId = descendant.item.guid;
+            jobToAdd.Color = color;
+            jobList.Add(jobToAdd);
+
+            var rolesByJob = GetRolesByJob(token, jobToAdd.Color, jobToAdd.JobId);
+            foreach (var jobRelatedRole in rolesByJob.JobRoles)
             {
-              var jobList = new List<Job>();
-              var roleList = new List<Role>();
-              var person = new Person
-              {
-                PersonId = obj.item.guid,
-                Name = Convert.ToString(obj.item.attributes.Select(i => i.value).FirstOrDefault()),
-                LocationName = model.LocationName,
-                TeamLeadName = model.TeamLeadName,
-                SupervisorName = model.SupervisorName,
-              };
-
-              var job = new Job
-              {
-                PersonId = person.PersonId,
-                PersonName = person.Name
-              };
-
-              var role = new Role
-              {
-                PersonId = person.PersonId,
-                PersonName = person.Name
-              };
-
-              foreach (var descendant in obj.descendants)
-              {
-                var jobToAdd = new Job { JobName = job.JobName, PersonId = job.PersonId, PersonName = job.PersonName };
-                var roleToAdd = new Role { RoleName = role.RoleName, PersonId = job.PersonId, PersonName = job.PersonName };
-                var value = Convert.ToString(descendant.item.attributes.Select(i => i.value).FirstOrDefault());
-                var type = descendant.item.typename;
-                if (type == "Organizational unit type")
-                {
-                  var color = GetKnownColor();
-                  // this is a job
-                  jobToAdd.JobName = value;
-                  jobToAdd.JobId = descendant.item.guid;
-                  jobToAdd.Color = color;
-                  jobList.Add(jobToAdd);
-
-                  var rolesByJob = GetRolesByJob(token, jobToAdd.Color, jobToAdd.JobId);
-                  foreach (var jobRelatedRole in rolesByJob.JobRoles)
-                  {
-                    // role id,job id, person id
-                    //if (person.JobRelatedRoles == null)
-                    //{
-                    //  person.JobRelatedRoles = new List<Role>();
-                    //}
-                    //person.JobRelatedRoles.Add(jobRelatedRole);
-                    roleList.Add(jobRelatedRole);
-                    //roleList.Add(roleBJ);
-                  }
-                }
-                else if (type == "Role")
-                {
-                  // this is a role
-                  roleToAdd.RoleName = value;
-                  roleToAdd.RoleId = descendant.item.guid;
-                  roleList.Add(roleToAdd);
-                }
-              }
-
-              person.Jobs = jobList;
-              person.Roles = roleList;
-              rootObject.Add(person);
+              // role id,job id, person id
+              //if (person.JobRelatedRoles == null)
+              //{
+              //  person.JobRelatedRoles = new List<Role>();
+              //}
+              //person.JobRelatedRoles.Add(jobRelatedRole);
+              roleList.Add(jobRelatedRole);
+              //roleList.Add(roleBJ);
             }
           }
+          else if (type == "Role")
+          {
+            // this is a role
+            roleToAdd.RoleName = value;
+            roleToAdd.RoleId = descendant.item.guid;
+            roleList.Add(roleToAdd);
+          }
         }
-      }
 
-      //foreach (var person in rootObject)
-      //{
-      //  foreach (var job in person.Jobs)
-      //  {
-      //    var color = GetKnownColor();
-      //    var rolesByJob = GetRolesByJob(token, color, job.JobId);
-      //      job.JobRoles = rolesByJob.JobRoles;
-      //   // job.Color = color;
-      //  }
-      //}
+        person.Jobs = jobList;
+        person.Roles = roleList;
+        rootObject.Add(person);
+      }
 
       if (!string.IsNullOrEmpty(personName))
         return rootObject.Where(i => i.Name.Trim().ToLower() == personName.Trim().ToLower()).ToList();
@@ -360,11 +333,11 @@ namespace Aris.API.Controllers
     public void UpdateAris([FromBody] MappingList model)
     {
       var token = model.Token;
-      
+
       // deserialize the whole json to object
       var mappingData = model.modelToSave;// JsonConvert.DeserializeObject<List<Mapping>>(modelToSave);
-
-
+      var locationAttributeGuid = GetAppSettings("LocationAttributeGuid");
+      var supervisorAttributeGuid = GetAppSettings("SupervisorAttributeGuid");
       var createdItems = mappingData.Where(i => i.Status == "New").ToList();
       var deletedItems = mappingData.Where(i => i.Status == "Deleted").ToList();
 
@@ -387,12 +360,12 @@ namespace Aris.API.Controllers
             // location update
             new Models.Connections.Attribute
             {
-              kind = "ATTRIBUTE", type= "8de0d080-4df4-11e8-3e7a-0296de82851c", value = createdItem.Location
+              kind = "ATTRIBUTE", type= locationAttributeGuid, value = createdItem.Location
             },
             // supervisor update
             new Models.Connections.Attribute
             {
-              kind = "ATTRIBUTE", type= "967c08d1-4f71-11e8-6a1e-d89d672712a8",value= createdItem.Supervisor
+              kind = "ATTRIBUTE", type= supervisorAttributeGuid,value= createdItem.Supervisor
             }
           }
         };
@@ -587,7 +560,7 @@ namespace Aris.API.Controllers
         var data = JsonConvert.DeserializeObject<OccsRootObject>(responseJson);
         //var parsed = JObject.Parse(responseJson);
         //var modelConnectionsJson = parsed["items"]["modelconnections"];
-      
+
         var modelConnections = new List<OccurenceConnection>();
         foreach (var item in data.items)
         {
@@ -595,11 +568,11 @@ namespace Aris.API.Controllers
           {
             modelConnections.Add(new OccurenceConnection
             {
-              kind =       mc.kind,
-              occid =       mc.occid,
+              kind = mc.kind,
+              occid = mc.occid,
               //type =        mc.type,
-              typename =    mc.typename,
-              apiname =     mc.apiname,
+              typename = mc.typename,
+              apiname = mc.apiname,
               target_guid = mc.target_guid,
               source_guid = mc.source_guid,
               //source_link = mc.source_link,
@@ -681,9 +654,9 @@ namespace Aris.API.Controllers
         }
         else
         {
-          url = "http://10.10.20.65:90/abs/api/databases/.CSL%20Behring_DEV/find?kind=OBJECT&methodfilter=17658890-ea42-11e6-21fb-0acb454164fe&attributes=1%2C1243%2C3757%2C8de0d080-4df4-11e8-3e7a-0296de82851c%2C%20&attributes=967c08d1-4f71-11e8-6a1e-d89d672712a8%2C75d2ad01-4f71-11e8-6a1e-d89d672712a8&attrfilter=8de0d080-4df4-11e8-3e7a-0296de82851c%20%2B&pagesize=500&pagetoken="+ nextpageToken + "";
+          url = "http://10.10.20.65:90/abs/api/databases/.CSL%20Behring_DEV/find?kind=OBJECT&methodfilter=17658890-ea42-11e6-21fb-0acb454164fe&attributes=1%2C1243%2C3757%2C8de0d080-4df4-11e8-3e7a-0296de82851c%2C%20&attributes=967c08d1-4f71-11e8-6a1e-d89d672712a8%2C75d2ad01-4f71-11e8-6a1e-d89d672712a8&attrfilter=8de0d080-4df4-11e8-3e7a-0296de82851c%20%2B&pagesize=500&pagetoken=" + nextpageToken + "";
         }
-        
+
         data = GetResponse<LocationPerson>(token, url);
         nextpageToken = data.next_pagetoken;
         foreach (var item in data.items)
@@ -752,7 +725,7 @@ namespace Aris.API.Controllers
         objData.TeamLeads.AddRange(teamLeads.OrderBy(i => i.Name).ToList());
 
       } while (!string.IsNullOrEmpty(data.next_pagetoken));
-      
+
 
       return objData;
     }
@@ -772,7 +745,7 @@ namespace Aris.API.Controllers
         {
           url1 = "http://10.10.20.65:90/abs/api/databases/.CSL%20Behring_DEV/find?kind=OBJECT&methodfilter=17658890-ea42-11e6-21fb-0acb454164fe&attributes=1%2C1243%2C3757%2C8de0d080-4df4-11e8-3e7a-0296de82851c%2C967c08d1-4f71-11e8-6a1e-d89d672712a8%2C75d2ad01-4f71-11e8-6a1e-d89d672712a8&typefilter=46&attrfilter=8de0d080-4df4-11e8-3e7a-0296de82851c%20%2B&pagesize=500&pagetoken=" + nextPageToken + "";
         }
-      
+
         var data = GetResponse<LocationPerson>(token, url1);
         nextPageToken = data.next_pagetoken;
         foreach (var item in data.items)
@@ -817,7 +790,7 @@ namespace Aris.API.Controllers
           persons.Add(person);
         }
       } while (!string.IsNullOrEmpty(nextPageToken));
-      
+
 
       return persons.Distinct().ToList();
     }
@@ -825,19 +798,15 @@ namespace Aris.API.Controllers
     List<Role> GetAllRoles(string token)
     {
       var roles = new List<Role>();
-      var url = string.Empty;
+      var url = ApiHelper.UrlBuilder(ApiTypeEnum.AllRoles);
       var nextPageToken = string.Empty;
       do
       {
-        if (string.IsNullOrEmpty(nextPageToken))
+        if (!string.IsNullOrEmpty(url))
         {
-          url = "http://10.10.20.65:90/abs/api/databases/.CSL%20Behring_DEV/find?kind=OBJECT&typefilter=78&defsymbolfilter=80f76b81-35b8-11e3-51cf-c1dbe7832b20&pagesize=500";
+          url = ApiHelper.AppendNextPageToken(url, nextPageToken);
         }
-        else
-        {
-          url = "http://10.10.20.65:90/abs/api/databases/.CSL%20Behring_DEV/find?kind=OBJECT&typefilter=78&defsymbolfilter=80f76b81-35b8-11e3-51cf-c1dbe7832b20&pagesize=500&pagetoken=" + nextPageToken + "";
-        }
-          
+
         var data = GetResponse<Models.RoleHelper.RoleMapper>(token, url);
         nextPageToken = data.next_pagetoken;
         foreach (var item in data.items)
@@ -853,7 +822,7 @@ namespace Aris.API.Controllers
         }
 
       } while (!string.IsNullOrEmpty(nextPageToken));
-      
+
 
       return roles.Distinct().ToList();
     }
@@ -862,18 +831,14 @@ namespace Aris.API.Controllers
     {
       var jobs = new List<Job>();
       var nextpageToken = string.Empty;
-      var url = string.Empty;
+      var url = ApiHelper.UrlBuilder(ApiTypeEnum.AllJobs, null);
       do
       {
-        if (string.IsNullOrEmpty(nextpageToken))
+        if (!string.IsNullOrEmpty(nextpageToken))
         {
-          url = "http://10.10.20.65:90/abs/api/databases/.CSL%20Behring_DEV/find?kind=OBJECT&typefilter=44&defsymbolfilter=299&pagesize=500";
+          url = ApiHelper.AppendNextPageToken(url, nextpageToken);
         }
-        else
-        {
-          url = "http://10.10.20.65:90/abs/api/databases/.CSL%20Behring_DEV/find?kind=OBJECT&typefilter=44&defsymbolfilter=299&pagesize=500&pagetoken=" + nextpageToken + "";
-        }
-          
+
         var data = GetResponse<Models.JobHelper.JobMapper>(token, url);
 
         nextpageToken = data.next_pagetoken;
@@ -885,31 +850,27 @@ namespace Aris.API.Controllers
           foreach (var attribute in item.attributes)
           {
             var jobName = attribute.value;
-            jobs.Add(new Aris.API.Models.Job { JobId = guid, JobName = jobName, Color = color });
+            jobs.Add(new Job { JobId = guid, JobName = jobName, Color = color });
           }
         }
 
         return jobs.Distinct().ToList();
-      } while (true);
-      
+      } while (!string.IsNullOrEmpty(nextpageToken));
+
     }
 
     List<Person> GetAllBackups(string token)
     {
       var persons = new List<Person>();
-      var url = string.Empty;
       var nextPageToken = string.Empty;
+      var url = ApiHelper.UrlBuilder(ApiTypeEnum.AllBackups);
       do
       {
-        if (string.IsNullOrEmpty(nextPageToken))
+        if (!string.IsNullOrEmpty(nextPageToken))
         {
-          url = "http://10.10.20.65:90/abs/api/databases/.CSL%20Behring_DEV/find?kind=OBJECT&typefilter=46&defsymbolfilter=2&pagesize=500";
-        }
-        else
-        {
-          url = "http://10.10.20.65:90/abs/api/databases/.CSL%20Behring_DEV/find?kind=OBJECT&typefilter=46&defsymbolfilter=2&pagesize=500&pagetoken=" + nextPageToken + "";
-        }
-        
+          url = ApiHelper.AppendNextPageToken(url, nextPageToken);
+        }        
+
         var data = GetResponse<LocationPerson>(token, url);
         nextPageToken = data.next_pagetoken;
         foreach (var item in data.items)
@@ -938,43 +899,29 @@ namespace Aris.API.Controllers
       };
       if (string.IsNullOrWhiteSpace(token))
         return rootObject;
-      
+
+      var url = ApiHelper.UrlBuilder(ApiTypeEnum.RolesByJob, null, false);
       var jsonPost = "{ \"start_guids\": \" " + jobId + " \",   \"items\": [ {  \"type\": \"CONNECTION\",  \"direction\": \"OUT\",  \"items\": [{ \"type\": \"OBJECT\", \"typenum\": \"78\", \"function\": \"TARGET\" } ] }  ] }";
-
-      using (var client = new HttpClient())
+      var data = GetPostResponse<Aris.API.Models.RoleHelper.RoleByJob.RolesByJob>(token, url, jsonPost);
+      foreach (var item in data.items)
       {
-        client.DefaultRequestHeaders.Clear();
-        client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-        client.DefaultRequestHeaders.Add("Authorization", "UMC " + token);
-        
-        using (var stringContent = new StringContent(jsonPost, Encoding.UTF8, "application/json"))
+        var jobGuid = item.item.guid;
+        foreach (var attribute in item.item.attributes)
         {
-          var response = client.PostAsync("http://10.10.20.65:90/abs/api/objects/.CSL%20Behring_DEV/query", stringContent).Result;
-          if (response.IsSuccessStatusCode)
+          var jobName = attribute.value;
+          rootObject.JobId = jobId;
+          rootObject.JobName = jobName;
+        }
+
+        // roles to be fetched here
+        foreach (var descendant in item.descendants)
+        {
+          var roleId = descendant.item.guid;
+
+          foreach (var attribute in descendant.item.attributes)
           {
-            var data = GetData<Aris.API.Models.RoleHelper.RoleByJob.RolesByJob>(response);
-            foreach (var item in data.items)
-            {
-              var jobGuid = item.item.guid;
-              foreach (var attribute in item.item.attributes)
-              {
-                var jobName = attribute.value;
-                rootObject.JobId = jobId;
-                rootObject.JobName = jobName;
-              }
-
-              // roles to be fetched here
-              foreach (var descendant in item.descendants)
-              {
-                var roleId = descendant.item.guid;
-
-                foreach (var attribute in descendant.item.attributes)
-                {
-                  var roleName = attribute.value;
-                  rootObject.JobRoles.Add(new Role { RoleId = roleId, RoleName = roleName, Color = color, JobId = jobId });
-                }
-              }
-            }
+            var roleName = attribute.value;
+            rootObject.JobRoles.Add(new Role { RoleId = roleId, RoleName = roleName, Color = color, JobId = jobId });
           }
         }
       }
@@ -992,42 +939,28 @@ namespace Aris.API.Controllers
       if (string.IsNullOrWhiteSpace(token))
         return rootObject;
 
-      using (var client = new HttpClient())
+      var url = ApiHelper.UrlBuilder(ApiTypeEnum.BackupsByRole, null, false);
+      var jsonPost = "{ \"start_guids\": \"" + roleId + "\", \"items\": [ { \"type\": \"CONNECTION\", \"direction\": \"INOUT\", \"items\": [ { \"type\": \"OBJECT\", \"typenum\": \"46\", \"function\": \"TARGET\" } ]   }  ]}";
+      var data = GetPostResponse<Models.RoleHelper.RoleByJob.RolesByJob>(token, url, jsonPost);
+      foreach (var item in data.items)
       {
-        client.DefaultRequestHeaders.Clear();
-        client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-        client.DefaultRequestHeaders.Add("Authorization", "UMC " + token);
-
-        var jsonPost = "{ \"start_guids\": \"" + roleId + "\", \"items\": [ { \"type\": \"CONNECTION\", \"direction\": \"INOUT\", \"items\": [ { \"type\": \"OBJECT\", \"typenum\": \"46\", \"function\": \"TARGET\" } ]   }  ]}";
-
-        using (var stringContent = new StringContent(jsonPost, Encoding.UTF8, "application/json"))
+        var roleguid = item.item.guid;
+        foreach (var attribute in item.item.attributes)
         {
-          var response = client.PostAsync("http://10.10.20.65:90/abs/api/objects/.CSL%20Behring_DEV/query", stringContent).Result;
-          if (response.IsSuccessStatusCode)
+          var roleName = attribute.value;
+          rootObject.RoleId = roleguid;
+          rootObject.RoleName = roleName;
+        }
+
+        // roles to be fetched here
+        foreach (var descendant in item.descendants)
+        {
+          var backupId = descendant.item.guid;
+
+          foreach (var attribute in descendant.item.attributes)
           {
-            var data = GetData<Aris.API.Models.RoleHelper.RoleByJob.RolesByJob>(response);
-            foreach (var item in data.items)
-            {
-              var roleguid = item.item.guid;
-              foreach (var attribute in item.item.attributes)
-              {
-                var roleName = attribute.value;
-                rootObject.RoleId = roleguid;
-                rootObject.RoleName = roleName;
-              }
-
-              // roles to be fetched here
-              foreach (var descendant in item.descendants)
-              {
-                var backupId = descendant.item.guid;
-
-                foreach (var attribute in descendant.item.attributes)
-                {
-                  var backupName = attribute.value;
-                  rootObject.Backups.Add(new Person { PersonId = backupId, Name = backupName, Color = color });
-                }
-              }
-            }
+            var backupName = attribute.value;
+            rootObject.Backups.Add(new Person { PersonId = backupId, Name = backupName, Color = color });
           }
         }
       }
@@ -1036,9 +969,6 @@ namespace Aris.API.Controllers
     }
   }
 }
-
-
-
 
 public interface IUserSession
 {

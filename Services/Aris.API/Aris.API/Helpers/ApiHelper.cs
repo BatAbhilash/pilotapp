@@ -29,6 +29,22 @@ namespace Aris.API.Helpers
     { get { return GetAppSettings("ModelId"); } }
 
     /// <summary>
+    /// Get the location attribute guid from the config
+    /// </summary>
+    static string LocationAttributeGuid
+    {
+      get { return GetAppSettings("LocationAttributeGuid"); }
+    }
+
+    /// <summary>
+    /// Get the location attribute guid from the config
+    /// </summary>
+    static string SupervisorAttributeGuid
+    {
+      get { return GetAppSettings("SupervisorAttributeGuid"); }
+    }
+
+    /// <summary>
     /// Gets the url from the config to get the token api path
     /// </summary>
     /// <returns></returns>
@@ -42,10 +58,11 @@ namespace Aris.API.Helpers
     /// </summary>
     /// <param name="apiTypeEnum">API Type enums</param>
     /// <param name="data">Data to be appended at the end of the url</param>
+    /// <param name="hasXmlConfigured">bool flag to set if the url is to be contstructed from xml</param>
     /// <returns>Url path as per the configs</returns>
-    public static string UrlBuilder(ApiTypeEnum apiTypeEnum, object data = null)
+    public static string UrlBuilder(ApiTypeEnum apiTypeEnum, object data = null, bool hasXmlConfigured = true)
     {
-      var url = GetUrlFromConfig(apiTypeEnum, data);
+      var url = GetUrlFromConfig(apiTypeEnum, data, hasXmlConfigured);
       return url;
     }
 
@@ -78,15 +95,25 @@ namespace Aris.API.Helpers
     /// </summary>
     /// <param name="apiTypeEnum">Type of api to be fired</param>
     /// <param name="data">Data, if any to be appended in it</param>
+    /// <param name="hasXmlConfigured">Check if the url is to be composed from an xml. Default true</param>
     /// <returns></returns>
-    static string GetUrlFromConfig(ApiTypeEnum apiTypeEnum, object data = null)
+    static string GetUrlFromConfig(ApiTypeEnum apiTypeEnum, object data = null, bool hasXmlConfigured = true)
     {
       var url = string.Empty;
-      var xmlPath = GetEnumDescription(apiTypeEnum);
-      var xml = XDocument.Load(HttpContext.Current.Server.MapPath(xmlPath)).ToString();
-      var query = GetQueryFromXml(xml);
+      var xmlPath = string.Empty;
+      var xml = string.Empty;
+      var query = string.Empty;
 
-      if (apiTypeEnum == ApiTypeEnum.Persons)
+      if (hasXmlConfigured)
+      {
+        xmlPath = GetEnumDescription(apiTypeEnum);
+        xml = XDocument.Load(HttpContext.Current.Server.MapPath(xmlPath)).ToString();
+        query = GetQueryFromXml(xml);
+      }
+      
+
+      if (apiTypeEnum == ApiTypeEnum.Persons
+        || apiTypeEnum == ApiTypeEnum.AllBackups)
       {
         url = BaseUrl + "databases" + DatabaseName + "find?" + query;
       }
@@ -102,6 +129,13 @@ namespace Aris.API.Helpers
       {
         url = BaseUrl + "models" + DatabaseName + ModelId + "/connections" + "?occid=" + Convert.ToString(data) + "";
       }
+      else if(apiTypeEnum == ApiTypeEnum.BackupsByRole
+        || apiTypeEnum == ApiTypeEnum.RolesByJob
+        || apiTypeEnum == ApiTypeEnum.Jobs)
+      {
+        url = BaseUrl + "objects" + DatabaseName + "query";
+      }
+      
 
       return url;
     }
@@ -126,6 +160,18 @@ namespace Aris.API.Helpers
       }
 
       return value.ToString();
+    }
+
+    /// <summary>
+    /// Appends the next page token to the url
+    /// </summary>
+    /// <param name="url">Url to which the next page token is to be appended</param>
+    /// <param name="nextPageToken">The next page token</param>
+    /// <returns></returns>
+    public static string AppendNextPageToken(string url, string nextPageToken)
+    {
+      url += "&pagetoken = " + nextPageToken + "";
+      return url;
     }
   }
 }
