@@ -113,13 +113,14 @@ namespace Aris.API.Helpers
       
 
       if (apiTypeEnum == ApiTypeEnum.Persons
-        || apiTypeEnum == ApiTypeEnum.AllBackups)
+        || apiTypeEnum == ApiTypeEnum.AllBackups
+        || apiTypeEnum == ApiTypeEnum.Locations)
       {
         url = BaseUrl + "databases" + DatabaseName + "find?" + query;
       }
       else if (apiTypeEnum == ApiTypeEnum.CreateData)
       {
-        url = BaseUrl + "/models"+ DatabaseName + ModelId;// + "/" + "&updateData=" + Convert.ToString(data) + "";
+        url = BaseUrl + "/models"+ DatabaseName + ModelId;
       }
       else if (apiTypeEnum == ApiTypeEnum.ModelConnection)
       {
@@ -135,7 +136,6 @@ namespace Aris.API.Helpers
       {
         url = BaseUrl + "objects" + DatabaseName + "query";
       }
-      
 
       return url;
     }

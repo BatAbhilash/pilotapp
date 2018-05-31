@@ -639,22 +639,23 @@ namespace Aris.API.Controllers
 
     Data GetLocationSupervisor(string token)
     {
-      var objData = new Data();
+      var objData = new Data
+      {
+         Locations = new List<Location>(),
+         Supervisors = new List<Supervisor>(),
+         TeamLeads = new List<TeamLead>()
+      };
       var locations = new List<Location>();
       var supervisors = new List<Supervisor>();
       var teamLeads = new List<TeamLead>();
       var data = new LocationPerson();
       var nextpageToken = string.Empty;
-      var url = string.Empty;
+      var url = ApiHelper.UrlBuilder(ApiTypeEnum.Locations);
       do
       {
-        if (string.IsNullOrEmpty(nextpageToken))
+        if (!string.IsNullOrEmpty(nextpageToken))
         {
-          url = "http://10.10.20.65:90/abs/api/databases/.CSL%20Behring_DEV/find?kind=OBJECT&methodfilter=17658890-ea42-11e6-21fb-0acb454164fe&attributes=1%2C1243%2C3757%2C8de0d080-4df4-11e8-3e7a-0296de82851c%2C%20&attributes=967c08d1-4f71-11e8-6a1e-d89d672712a8%2C75d2ad01-4f71-11e8-6a1e-d89d672712a8&attrfilter=8de0d080-4df4-11e8-3e7a-0296de82851c%20%2B&pagesize=500";
-        }
-        else
-        {
-          url = "http://10.10.20.65:90/abs/api/databases/.CSL%20Behring_DEV/find?kind=OBJECT&methodfilter=17658890-ea42-11e6-21fb-0acb454164fe&attributes=1%2C1243%2C3757%2C8de0d080-4df4-11e8-3e7a-0296de82851c%2C%20&attributes=967c08d1-4f71-11e8-6a1e-d89d672712a8%2C75d2ad01-4f71-11e8-6a1e-d89d672712a8&attrfilter=8de0d080-4df4-11e8-3e7a-0296de82851c%20%2B&pagesize=500&pagetoken=" + nextpageToken + "";
+          url = ApiHelper.AppendNextPageToken(url,nextpageToken);
         }
 
         data = GetResponse<LocationPerson>(token, url);
@@ -705,21 +706,6 @@ namespace Aris.API.Controllers
           }
         }
 
-        //objData.Locations = locations.OrderBy(i => i.Name).ToList();
-        //objData.Supervisors = supervisors.OrderBy(i => i.Name).ToList();
-        //objData.TeamLeads = teamLeads.OrderBy(i => i.Name).ToList();
-        if (objData.Locations == null)
-        {
-          objData.Locations = new List<Location>();
-        }
-        if (objData.Supervisors == null)
-        {
-          objData.Supervisors = new List<Supervisor>();
-        }
-        if (objData.TeamLeads == null)
-        {
-          objData.TeamLeads = new List<TeamLead>();
-        }
         objData.Locations.AddRange(locations.OrderBy(i => i.Name).ToList());
         objData.Supervisors.AddRange(supervisors.OrderBy(i => i.Name).ToList());
         objData.TeamLeads.AddRange(teamLeads.OrderBy(i => i.Name).ToList());

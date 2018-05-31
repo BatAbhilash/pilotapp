@@ -4,7 +4,7 @@ namespace Aris.API.ApiConfigs
 {
   public enum ApiTypeEnum
   {
-    [Description("~/ApiConfigs/PersonApi.xml")]
+    [Description("~/ApiConfigs/LocationApi.xml")]
     Locations,
     [Description("~/ApiConfigs/PersonApi.xml")]
     Persons,
