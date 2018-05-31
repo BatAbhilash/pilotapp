@@ -166,12 +166,9 @@ namespace Aris.API
   }
 }
 
-
-
 public enum HttpTypeEnum
-  {
-    Post,
-    Put,
-    Delete
-  }
+{
+  Post,
+  Put,
+  Delete
 }
