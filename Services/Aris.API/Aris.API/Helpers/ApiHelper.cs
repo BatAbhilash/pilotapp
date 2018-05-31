@@ -64,10 +64,11 @@ namespace Aris.API.Helpers
     /// <param name="apiTypeEnum">API Type enums</param>
     /// <param name="data">Data to be appended at the end of the url</param>
     /// <param name="hasXmlConfigured">bool flag to set if the url is to be contstructed from xml</param>
+    /// <param name="hasFilter">bool flag to set if the url is to be contstructed from xml</param>
     /// <returns>Url path as per the configs</returns>
-    public static string UrlBuilder(ApiTypeEnum apiTypeEnum, object data = null, bool hasXmlConfigured = true)
+    public static string UrlBuilder(ApiTypeEnum apiTypeEnum, object data = null, bool hasXmlConfigured = true, bool hasFilter = false)
     {
-      var url = GetUrlFromConfig(apiTypeEnum, data, hasXmlConfigured);
+      var url = GetUrlFromConfig(apiTypeEnum, data, hasXmlConfigured, hasFilter);
       return url;
     }
 
@@ -101,8 +102,9 @@ namespace Aris.API.Helpers
     /// <param name="apiTypeEnum">Type of api to be fired</param>
     /// <param name="data">Data, if any to be appended in it</param>
     /// <param name="hasXmlConfigured">Check if the url is to be composed from an xml. Default true</param>
+    /// <param name="hasFilter">Check if the url is to be composed from an xml. Default true</param>
     /// <returns></returns>
-    static string GetUrlFromConfig(ApiTypeEnum apiTypeEnum, object data = null, bool hasXmlConfigured = true)
+    static string GetUrlFromConfig(ApiTypeEnum apiTypeEnum, object data = null, bool hasXmlConfigured = true, bool hasFilter = false)
     {
       var url = string.Empty;
       var xmlPath = string.Empty;
@@ -144,7 +146,7 @@ namespace Aris.API.Helpers
         url = BaseUrl + "objects" + DatabaseName + "query";
       }
 
-      if (!string.IsNullOrEmpty(FilterText))
+      if (hasFilter && !string.IsNullOrEmpty(FilterText))
       {
         url += "&attrfilter=" + HttpUtility.UrlEncode("1=" + FilterText.Trim().ToLower() +" ") + " ";
       }
