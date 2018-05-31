@@ -143,7 +143,7 @@ namespace Aris.API.Controllers
       if (string.IsNullOrWhiteSpace(token))
         return rootObject;
 
-      rootObject = GetPersons(url, token, locationName, supervisorName);
+      rootObject = GetPersons(token, locationName, supervisorName);
       if (string.IsNullOrEmpty(locationName) && string.IsNullOrEmpty(supervisorName) && string.IsNullOrEmpty(personName))
       {
         throw new HttpResponseException(HttpStatusCode.BadRequest);
@@ -716,23 +716,19 @@ namespace Aris.API.Controllers
       return objData;
     }
 
-    List<Person> GetPersons(string url, string token, string locationName, string supervisorName)
+    List<Person> GetPersons(string token, string locationName, string supervisorName)
     {
       var persons = new List<Person>();
       var nextPageToken = string.Empty;
-      var url1 = string.Empty;
+      var url = ApiHelper.UrlBuilder(ApiTypeEnum.Persons);
       do
       {
-        if (string.IsNullOrEmpty(nextPageToken))
+        if (!string.IsNullOrEmpty(nextPageToken))
         {
-          url1 = "http://10.10.20.65:90/abs/api/databases/.CSL%20Behring_DEV/find?kind=OBJECT&methodfilter=17658890-ea42-11e6-21fb-0acb454164fe&attributes=1%2C1243%2C3757%2C8de0d080-4df4-11e8-3e7a-0296de82851c%2C967c08d1-4f71-11e8-6a1e-d89d672712a8%2C75d2ad01-4f71-11e8-6a1e-d89d672712a8&typefilter=46&attrfilter=8de0d080-4df4-11e8-3e7a-0296de82851c%20%2B&pagesize=500";
-        }
-        else
-        {
-          url1 = "http://10.10.20.65:90/abs/api/databases/.CSL%20Behring_DEV/find?kind=OBJECT&methodfilter=17658890-ea42-11e6-21fb-0acb454164fe&attributes=1%2C1243%2C3757%2C8de0d080-4df4-11e8-3e7a-0296de82851c%2C967c08d1-4f71-11e8-6a1e-d89d672712a8%2C75d2ad01-4f71-11e8-6a1e-d89d672712a8&typefilter=46&attrfilter=8de0d080-4df4-11e8-3e7a-0296de82851c%20%2B&pagesize=500&pagetoken=" + nextPageToken + "";
+          url = ApiHelper.AppendNextPageToken(url,nextPageToken);
         }
 
-        var data = GetResponse<LocationPerson>(token, url1);
+        var data = GetResponse<LocationPerson>(token, url);
         nextPageToken = data.next_pagetoken;
         foreach (var item in data.items)
         {

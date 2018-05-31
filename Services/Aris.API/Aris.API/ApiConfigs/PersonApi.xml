@@ -15,4 +15,7 @@
   <typeFilters>
     <typeFilter>46</typeFilter>
   </typeFilters>
+  <pagesizes>
+    <pagesize>500</pagesize>
+  </pagesizes>
 </root>
