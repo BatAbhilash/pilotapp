@@ -144,6 +144,15 @@ namespace Aris.API.Controllers
       if (string.IsNullOrWhiteSpace(token))
         return rootObject;
 
+      if (string.IsNullOrEmpty(locationName) && string.IsNullOrEmpty(supervisorName) && !string.IsNullOrEmpty(personName))
+      {
+        // this is the person search case
+        // get all the persons based on the search person text
+        // these persons will also have the property whether ther are already saved for that location or not
+        FilterText = personName;
+        url = UrlBuilder(ApiTypeEnum.Persons, hasFilter: true);
+      }
+
       rootObject = GetPersons(token, locationName, supervisorName);
       if (string.IsNullOrEmpty(locationName) && string.IsNullOrEmpty(supervisorName) && string.IsNullOrEmpty(personName))
       {
@@ -156,16 +165,11 @@ namespace Aris.API.Controllers
         // get all the persons based on the location and the supervisor
         filteredData = rootObject.Where(i => i.LocationName.Trim().ToLower() == locationName.Trim().ToLower()
                                          && i.SupervisorName.Trim().ToLower() == supervisorName.Trim().ToLower()).ToList();
-      }
-      else if (!string.IsNullOrEmpty(locationName) && !string.IsNullOrEmpty(supervisorName) && !string.IsNullOrEmpty(personName))
-      {
-        // this is the person search case
-        // get all the persons based on the search person text
-        // these persons will also have the property whether ther are already saved for that location or not
-        filteredData = rootObject.Where(i => i.Name.Trim().ToLower().StartsWith(personName.Trim().ToLower(), StringComparison.Ordinal)).ToList();
+
+        return filteredData;
       }
 
-      return filteredData;
+      return rootObject;
     }
 
     [HttpPost]
@@ -808,7 +812,7 @@ namespace Aris.API.Controllers
       var jobs = new List<Job>();
       var nextpageToken = string.Empty;
       FilterText = filterText;
-      var url = UrlBuilder(ApiTypeEnum.AllJobs, hasFilter: true); 
+      var url = UrlBuilder(ApiTypeEnum.AllJobs, hasFilter: true);
       do
       {
         if (!string.IsNullOrEmpty(nextpageToken))
@@ -841,7 +845,7 @@ namespace Aris.API.Controllers
       var persons = new List<Person>();
       var nextPageToken = string.Empty;
       FilterText = backupNameFilter;
-      var url = UrlBuilder(ApiTypeEnum.AllBackups, hasFilter: true); 
+      var url = UrlBuilder(ApiTypeEnum.AllBackups, hasFilter: true);
       do
       {
         if (!string.IsNullOrEmpty(nextPageToken))
