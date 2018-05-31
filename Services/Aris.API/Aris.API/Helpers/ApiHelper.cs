@@ -182,7 +182,15 @@ namespace Aris.API.Helpers
     /// <returns></returns>
     public static string AppendNextPageToken(string url, string nextPageToken)
     {
-      url += "&pagetoken = " + nextPageToken + "";
+      if (!url.Contains("&pagetoken"))
+      {
+        url += "&pagetoken=" + nextPageToken + "";
+      }
+      else
+      {
+        url = string.Join("&", url.Split('&').Where(r => !r.Contains("pagetoken="))) + "&pagetoken=" + nextPageToken + "";
+      }
+      
       return url;
     }
   }
