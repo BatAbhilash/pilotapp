@@ -850,6 +850,8 @@ namespace Aris.API.Controllers
         }
 
         var data = GetResponse<LocationPerson>(token, url);
+        if (data == null) return persons;
+        
         nextPageToken = data.next_pagetoken;
         foreach (var item in data.items)
         {

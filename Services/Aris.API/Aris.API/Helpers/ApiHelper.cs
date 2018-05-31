@@ -146,7 +146,7 @@ namespace Aris.API.Helpers
 
       if (!string.IsNullOrEmpty(FilterText))
       {
-        url += "attrfilter=" + HttpUtility.UrlEncode("1=" + FilterText.Trim().ToLower() +" ") + " ";
+        url += "&attrfilter=" + HttpUtility.UrlEncode("1=" + FilterText.Trim().ToLower() +" ") + " ";
       }
 
       return url;
