@@ -285,6 +285,9 @@
     <Compile Include="Startup.cs" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="ApiConfigs\AllBackups.xml" />
+    <Content Include="ApiConfigs\AllJobs.xml" />
+    <Content Include="ApiConfigs\AllRoles.xml" />
     <Content Include="ApiConfigs\CreateApi.xml" />
     <Content Include="ApiConfigs\DeleteApi.xml" />
     <Content Include="ApiConfigs\ModelConnectionApi.xml" />

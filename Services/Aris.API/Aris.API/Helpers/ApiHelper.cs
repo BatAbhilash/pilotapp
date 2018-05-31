@@ -45,6 +45,11 @@ namespace Aris.API.Helpers
     }
 
     /// <summary>
+    /// Gets or sets the filter text which is entered by the user to search for a field
+    /// </summary>
+    public static string FilterText { get; set; }
+
+    /// <summary>
     /// Gets the url from the config to get the token api path
     /// </summary>
     /// <returns></returns>
@@ -74,7 +79,7 @@ namespace Aris.API.Helpers
     static string GetQueryFromXml(string xml)
     {
       if (string.IsNullOrEmpty(xml)) return string.Empty;
-       
+
       var query = string.Join("&", (
            from parent in XElement.Parse(xml).Elements()
            from child in parent.Elements()
@@ -110,17 +115,19 @@ namespace Aris.API.Helpers
         xml = XDocument.Load(HttpContext.Current.Server.MapPath(xmlPath)).ToString();
         query = GetQueryFromXml(xml);
       }
-      
+
 
       if (apiTypeEnum == ApiTypeEnum.Persons
         || apiTypeEnum == ApiTypeEnum.AllBackups
-        || apiTypeEnum == ApiTypeEnum.Locations)
+        || apiTypeEnum == ApiTypeEnum.Locations
+        || apiTypeEnum == ApiTypeEnum.AllJobs
+        || apiTypeEnum == ApiTypeEnum.AllRoles)
       {
         url = BaseUrl + "databases" + DatabaseName + "find?" + query;
       }
       else if (apiTypeEnum == ApiTypeEnum.CreateData)
       {
-        url = BaseUrl + "/models"+ DatabaseName + ModelId;
+        url = BaseUrl + "/models" + DatabaseName + ModelId;
       }
       else if (apiTypeEnum == ApiTypeEnum.ModelConnection)
       {
@@ -130,11 +137,16 @@ namespace Aris.API.Helpers
       {
         url = BaseUrl + "models" + DatabaseName + ModelId + "/connections" + "?occid=" + Convert.ToString(data) + "";
       }
-      else if(apiTypeEnum == ApiTypeEnum.BackupsByRole
+      else if (apiTypeEnum == ApiTypeEnum.BackupsByRole
         || apiTypeEnum == ApiTypeEnum.RolesByJob
         || apiTypeEnum == ApiTypeEnum.Jobs)
       {
         url = BaseUrl + "objects" + DatabaseName + "query";
+      }
+
+      if (!string.IsNullOrEmpty(FilterText))
+      {
+        url += "attrfilter=" + HttpUtility.UrlEncode("1=" + FilterText.Trim().ToLower() +" ") + " ";
       }
 
       return url;

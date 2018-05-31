@@ -19,6 +19,7 @@ using System.Web.Http;
 using System.Web.Http.Cors;
 using static Aris.API.Constants;
 using static Aris.API.Helper;
+using static Aris.API.Helpers.ApiHelper;
 
 namespace Aris.API.Controllers
 {
@@ -133,7 +134,7 @@ namespace Aris.API.Controllers
     [Route("api/Values/Persons")]
     public IEnumerable<Person> Persons([FromBody] TokenModel model)
     {
-      var url = ApiHelper.UrlBuilder(ApiTypeEnum.Persons);
+      var url = UrlBuilder(ApiTypeEnum.Persons);
       IEnumerable<Person> filteredData = null;
       var token = model.Token;
       var locationName = model.LocationName;
@@ -177,7 +178,7 @@ namespace Aris.API.Controllers
       if (string.IsNullOrWhiteSpace(token))
         return rootObject;
 
-      var url = ApiHelper.UrlBuilder(ApiTypeEnum.Jobs);
+      var url = UrlBuilder(ApiTypeEnum.Jobs,null,false);
       var jsonPost = JobQuery.JobQueryData(model.PersonId);
       var data = GetPostResponse<JobRole>(token, url, jsonPost);
       var organizationalUnit = "Organizational unit type".Trim().ToLower();
@@ -260,13 +261,13 @@ namespace Aris.API.Controllers
     {
       var token = model.Token;
       var jobName = model.JobName;
-      var rootObject = new List<Aris.API.Models.Job>();
+      var rootObject = new List<Job>();
       if (string.IsNullOrWhiteSpace(token))
         return rootObject;
 
-      rootObject = GetAllJobs(token);
+      rootObject = GetAllJobs(token, jobName);
 
-      return rootObject.Where(i => i.JobName.Trim().ToLower().StartsWith(jobName.Trim().ToLower(), StringComparison.Ordinal)).ToList();
+      return rootObject;
     }
 
     [HttpPost]
@@ -279,9 +280,9 @@ namespace Aris.API.Controllers
       if (string.IsNullOrWhiteSpace(token))
         return rootObject;
 
-      rootObject = GetAllRoles(token);
+      rootObject = GetAllRoles(token, roleName);
 
-      return rootObject.Where(i => i.RoleName.Trim().ToLower().StartsWith(roleName.Trim().ToLower(), StringComparison.Ordinal)).ToList();
+      return rootObject;
     }
 
     [HttpPost]
@@ -289,14 +290,14 @@ namespace Aris.API.Controllers
     public List<Person> GetAllBackups([FromBody] TokenModel model)
     {
       var token = model.Token;
-      var personName = model.BackupName;
+      var backupNameFilter = model.BackupName;
       var rootObject = new List<Person>();
       if (string.IsNullOrWhiteSpace(token))
         return rootObject;
 
-      rootObject = GetAllBackups(token);
+      rootObject = GetAllBackups(token, backupNameFilter);
 
-      return rootObject.Where(i => i.Name.Trim().ToLower().StartsWith(personName.Trim().ToLower(), StringComparison.Ordinal)).ToList();
+      return rootObject;
     }
 
     [HttpPost]
@@ -650,12 +651,12 @@ namespace Aris.API.Controllers
       var teamLeads = new List<TeamLead>();
       var data = new LocationPerson();
       var nextpageToken = string.Empty;
-      var url = ApiHelper.UrlBuilder(ApiTypeEnum.Locations);
+      var url = UrlBuilder(ApiTypeEnum.Locations);
       do
       {
         if (!string.IsNullOrEmpty(nextpageToken))
         {
-          url = ApiHelper.AppendNextPageToken(url,nextpageToken);
+          url = AppendNextPageToken(url,nextpageToken);
         }
 
         data = GetResponse<LocationPerson>(token, url);
@@ -720,12 +721,12 @@ namespace Aris.API.Controllers
     {
       var persons = new List<Person>();
       var nextPageToken = string.Empty;
-      var url = ApiHelper.UrlBuilder(ApiTypeEnum.Persons);
+      var url = UrlBuilder(ApiTypeEnum.Persons);
       do
       {
         if (!string.IsNullOrEmpty(nextPageToken))
         {
-          url = ApiHelper.AppendNextPageToken(url,nextPageToken);
+          url = AppendNextPageToken(url,nextPageToken);
         }
 
         var data = GetResponse<LocationPerson>(token, url);
@@ -757,15 +758,7 @@ namespace Aris.API.Controllers
               personName = attribute.value;
             }
           }
-
-          //if (string.IsNullOrEmpty(Convert.ToString(location_Name))
-          //    || string.IsNullOrEmpty(Convert.ToString(supervisor_Name))
-          //    || string.IsNullOrEmpty(Convert.ToString(personName))
-          //    )
-          //{
-          //    continue;
-          //}
-
+          
           var person = new Person { PersonId = personId, Name = personName, LocationName = location_Name, SupervisorName = supervisor_Name };
           person.HasMapping = string.Equals(person.LocationName, locationName, StringComparison.OrdinalIgnoreCase) &&
                               string.Equals(person.SupervisorName, supervisorName, StringComparison.OrdinalIgnoreCase);
@@ -777,16 +770,17 @@ namespace Aris.API.Controllers
       return persons.Distinct().ToList();
     }
 
-    List<Role> GetAllRoles(string token)
+    List<Role> GetAllRoles(string token, string filterText)
     {
       var roles = new List<Role>();
-      var url = ApiHelper.UrlBuilder(ApiTypeEnum.AllRoles);
+      var url = UrlBuilder(ApiTypeEnum.AllRoles);
+      FilterText = filterText;
       var nextPageToken = string.Empty;
       do
       {
         if (!string.IsNullOrEmpty(url))
         {
-          url = ApiHelper.AppendNextPageToken(url, nextPageToken);
+          url = AppendNextPageToken(url, nextPageToken);
         }
 
         var data = GetResponse<Models.RoleHelper.RoleMapper>(token, url);
@@ -806,19 +800,20 @@ namespace Aris.API.Controllers
       } while (!string.IsNullOrEmpty(nextPageToken));
 
 
-      return roles.Distinct().ToList();
+      return roles;
     }
 
-    List<Job> GetAllJobs(string token)
+    List<Job> GetAllJobs(string token, string filterText)
     {
       var jobs = new List<Job>();
       var nextpageToken = string.Empty;
-      var url = ApiHelper.UrlBuilder(ApiTypeEnum.AllJobs, null);
+      FilterText = filterText;
+      var url = UrlBuilder(ApiTypeEnum.AllJobs, null);
       do
       {
         if (!string.IsNullOrEmpty(nextpageToken))
         {
-          url = ApiHelper.AppendNextPageToken(url, nextpageToken);
+          url = AppendNextPageToken(url, nextpageToken);
         }
 
         var data = GetResponse<Models.JobHelper.JobMapper>(token, url);
@@ -841,17 +836,18 @@ namespace Aris.API.Controllers
 
     }
 
-    List<Person> GetAllBackups(string token)
+    List<Person> GetAllBackups(string token, string backupNameFilter)
     {
       var persons = new List<Person>();
       var nextPageToken = string.Empty;
-      var url = ApiHelper.UrlBuilder(ApiTypeEnum.AllBackups);
+      FilterText = backupNameFilter;
+      var url = UrlBuilder(ApiTypeEnum.AllBackups);
       do
       {
         if (!string.IsNullOrEmpty(nextPageToken))
         {
-          url = ApiHelper.AppendNextPageToken(url, nextPageToken);
-        }        
+          url = AppendNextPageToken(url, nextPageToken);
+        }
 
         var data = GetResponse<LocationPerson>(token, url);
         nextPageToken = data.next_pagetoken;
@@ -868,7 +864,7 @@ namespace Aris.API.Controllers
       } while (!string.IsNullOrEmpty(nextPageToken));
 
 
-      return persons.Distinct().ToList();
+      return persons;
     }
 
     Job GetRolesByJob(string token, string color, string jobId)
