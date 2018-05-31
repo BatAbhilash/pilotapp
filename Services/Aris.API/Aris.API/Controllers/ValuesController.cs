@@ -782,7 +782,7 @@ namespace Aris.API.Controllers
       var nextPageToken = string.Empty;
       do
       {
-        if (!string.IsNullOrEmpty(url))
+        if (!string.IsNullOrEmpty(nextPageToken))
         {
           url = AppendNextPageToken(url, nextPageToken);
         }
