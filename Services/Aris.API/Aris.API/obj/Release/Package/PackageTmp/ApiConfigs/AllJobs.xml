@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<root>
+  <kinds>
+    <kind>OBJECT</kind>
+  </kinds>
+  <typefilters>
+    <typefilter>44</typefilter>
+  </typefilters>
+  <defsymbolfilters>
+    <defsymbolfilter>299</defsymbolfilter>
+  </defsymbolfilters>
+  <pagesizes>
+    <pagesize>500</pagesize>
+  </pagesizes>
+</root>

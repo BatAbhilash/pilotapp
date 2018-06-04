@@ -20,7 +20,7 @@
 
         <div class="form-group">
           <div>
-            <ng-multiselect-dropdown name="selectedSupervisors" id="selectedSupervisors" [placeholder]="'Select a Supervisor'" [data]="supervisors" [(ngModel)]="selectedSupervisors" [disabled]="loading"
+            <ng-multiselect-dropdown name="selectedSupervisors" id="selectedSupervisors" [placeholder]="'Select a Supervisor'" [data]="supervisors" [(ngModel)]="selectedSupervisors" [disabled]="loading || selectedLocation.length === 0"
               [settings]="dropdownSupervisorsSettings" (onSelect)="onCheckboxSelect($event,'Supervisors')" (onDeSelect)="onDeselct($event,'Supervisors')"
               (onFilterChange)="onFilterChange($event, 'Supervisors')">
             </ng-multiselect-dropdown>
@@ -33,7 +33,7 @@
         <div class="form-group">
           <div>
 
-            <ng-multiselect-dropdown name="selectedHead" id="selectedHead" [placeholder]="'Select a Team Lead'" [data]="headData" [(ngModel)]="selectedHead" [disabled]="loading"
+            <ng-multiselect-dropdown name="selectedHead" id="selectedHead" [placeholder]="'Select a Team Lead'" [data]="headData" [(ngModel)]="selectedHead" [disabled]="loading || selectedSupervisors.length === 0"
               [settings]="dropdownHeadSettings" (onSelect)="onCheckboxSelect($event,'Head')" (onDeSelect)="onDeselct($event,'Head')" (onFilterChange)="onFilterChange($event, 'head')">
             </ng-multiselect-dropdown>
           </div>
@@ -45,7 +45,7 @@
         <div class="form-group">
           <div>
 
-            <ng-multiselect-dropdown name="selectedPersons" id="selectedPersons" [placeholder]="'Select a Person'" [data]="persons" [(ngModel)]="selectedPersons" [disabled]="loading"
+            <ng-multiselect-dropdown name="selectedPersons" id="selectedPersons" [placeholder]="'Select a Person'" [data]="persons" [(ngModel)]="selectedPersons" [disabled]="loading || selectedHead.length === 0"
               [settings]="dropdownPersonSettings" (onSelect)="onCheckboxSelect($event,'Person')" (onDeSelect)="onDeselct($event,'Person')"
               (onFilterChange)="onFilterChange($event, 'person')">
             </ng-multiselect-dropdown>
@@ -62,7 +62,7 @@
 
         <div class="form-group">
           <div>
-            <ng-multiselect-dropdown name="selectedJobs" id="selectedJobs" [placeholder]="'Select a Job'" [data]="job" [(ngModel)]="selectedJobs" [disabled]="loading"
+            <ng-multiselect-dropdown name="selectedJobs" id="selectedJobs" [placeholder]="'Select a Job'" [data]="job" [(ngModel)]="selectedJobs" [disabled]="loading || selectedPersons.length === 0"
               [settings]="dropdownJobSettings" (onSelect)="onCheckboxSelect($event,'Job')" (onDeSelect)="onDeselct($event,'Job')" (onFilterChange)="onFilterChange($event, 'Job')">
             </ng-multiselect-dropdown>
           </div>
@@ -73,7 +73,7 @@
         <h3>Roles</h3>
         <div class="form-group">
           <div>
-            <ng-multiselect-dropdown name="selectedRoles" id="selectedRoles" [placeholder]="'Select a Role'" [data]="roles" [(ngModel)]="selectedRoles" [disabled]="loading"
+            <ng-multiselect-dropdown name="selectedRoles" id="selectedRoles" [placeholder]="'Select a Role'" [data]="roles" [(ngModel)]="selectedRoles" [disabled]="loading || selectedPersons.length === 0"
               [settings]="dropdownRoleSettings" (onSelect)="onCheckboxSelect($event,'Role')" (onDeSelect)="onDeselct($event,'Role')" (onFilterChange)="onFilterChange($event, 'Role')">
             </ng-multiselect-dropdown>
           </div>
@@ -81,10 +81,18 @@
       </div>
 
       <div class="col-md-4">
-        <h3>Backups</h3>
+        <h3>
+          Backup 
+        </h3>
+        <p *ngIf="selectedSingleRole.length > 0">Select for 
+          <b>
+            {{selectedSingleRole[0]}}
+          </b>
+        </p>
+        
         <div class="form-group">
           <div>
-            <ng-multiselect-dropdown name="selectedBackups" id="selectedBackups" [placeholder]="'Select a Backup'" [data]="backup" [(ngModel)]="selectedBackups" [disabled]="loading"
+            <ng-multiselect-dropdown name="selectedBackups" id="selectedBackups" [placeholder]="'Select a Backup'" [data]="backup" [(ngModel)]="selectedBackups" [disabled]="loading || selectedSingleRole.length === 0"
               [settings]="dropdownBackupSettings" (onSelect)="onCheckboxSelect($event,'Backup')" (onDeSelect)="onDeselct($event,'Backup')"
               (onFilterChange)="onFilterChange($event, 'Backup')">
             </ng-multiselect-dropdown>
@@ -95,8 +103,11 @@
     <div class="row">
       <div class="col-md-12">
         <div class="pull-right">
-          <button type="button" class="btn btn-success" 
-          id="showBackup" (click)="getBackupByRoles()">Show Backups</button>
+          <!-- <button type="button" class="btn btn-success" 
+          id="showBackup" (click)="getBackupByRoles()">Show Backups</button> -->
+
+          <button type="button" class="btn btn-success" *ngIf="response.Role.length > 0"
+          id="showBackup" (click)="openModalForRole(template)">Assign Backup For Role</button>
 
           <button type="button" class="btn btn-success" 
            id="save" (click)="addRow(template)">Add Mapping</button>
@@ -111,9 +122,26 @@
 </div>
 <ngx-loading [show]="loading" [config]="{ backdropBorderRadius: '14px', fullScreenBackdrop: true }"></ngx-loading>
 
-<ng-template #template>
+<!-- <ng-template #template>
   <div class="modal-body text-center">
     <p>Mapping needs to be modified...!</p>
     <button type="button" class="btn btn-default" (click)="dismissModal()">Yes</button>
   </div>
+</ng-template> -->
+
+<ng-template #template>
+  <div class="modal-body text-center">
+          <h3>Select Role</h3>
+          <div class="form-group">
+            <div>
+              <ng-multiselect-dropdown name="selectedSingleRole" id="selectedSingleRole" [placeholder]="'Select a Role'" [data]="selectRoleArray" [(ngModel)]="selectedSingleRole" [disabled]="loading"
+                [settings]="dropdownBackupSettingsForRoles" (onSelect)="onCheckboxSelect($event,'MapRoleToBackup')" (onDeSelect)="onDeselct($event,'MapRoleToBackup')"
+                (onFilterChange)="onFilterChange($event, 'Backup')">
+              </ng-multiselect-dropdown>
+            </div>
+    </div>
+    <button type="button" class="btn btn-success" (click)="getBackupByRoles()">Show or Assign Backup</button>
+    <button type="button" class="btn btn-default" (click)="dismissModal()">Cancel</button>
+  </div>
 </ng-template>
+

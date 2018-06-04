@@ -23,8 +23,8 @@ import { CslService } from './csl.service';
 
 
 const routes: Routes = [
-  { path: 'csl', component: CslDropdownsComponent },
-  { path: '', redirectTo: '/csl', pathMatch: 'full' }
+  { path: '', component: CslDropdownsComponent },
+  { path: '', redirectTo: '/', pathMatch: 'full' }
 ];
 
 

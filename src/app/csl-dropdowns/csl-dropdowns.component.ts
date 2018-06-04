@@ -24,6 +24,8 @@ export class CslDropdownsComponent implements OnInit {
   title = 'app';
   loading = false;
   flag = false;
+  deletedBackupObj = [];
+  addedBackupObj = [];
   tableContent = [];
   selectedLocation = [];
   dropdownLocationSettings = {};
@@ -33,6 +35,7 @@ export class CslDropdownsComponent implements OnInit {
   dropdownBackupSettings = {};
   dropdownHeadSettings = {};
   dropdownSupervisorsSettings = {};
+  dropdownBackupSettingsForRoles = {};
   location = [];
   headData = [];
   persons = [];
@@ -46,6 +49,9 @@ export class CslDropdownsComponent implements OnInit {
   selectedRoles = [];
   selectedBackups = [];
   selectedSupervisors = [];
+  selectedSingleRole = [];
+  selectRoleArray = [];
+  selectedSingleRoleName = {};
   originalMapping: any;
   response = {
     Location: {},
@@ -152,7 +158,7 @@ export class CslDropdownsComponent implements OnInit {
     };
 
     this.dropdownBackupSettings = {
-      singleSelection: false,
+      singleSelection: true,
       idField: 'Name',
       textField: 'Name',
       selectAllText: 'Select All',
@@ -165,6 +171,18 @@ export class CslDropdownsComponent implements OnInit {
       DisabledField: 'DisabledField'
     };
 
+    this.dropdownBackupSettingsForRoles = {
+      singleSelection: true,
+      idField: 'RoleName',
+      textField: 'RoleName',
+      selectAllText: 'Select All',
+      unSelectAllText: 'UnSelect All',
+      itemsShowLimit: 3,
+      allowSearchFilter: false,
+      closeDropDownOnSelection: true,
+      enableCheckAll: false,
+      color: 'Color',
+    };
   }
 
   getLocationData() {
@@ -190,12 +208,19 @@ export class CslDropdownsComponent implements OnInit {
     this.flag = true;
     const roleNames = [];
     const tableData = {};
+    self.response.Role = _.uniq(self.response.Role);
+    self.response.Backup = _.uniq(self.response.Backup);
+    debugger;
+    if (self.response.Role.length > 0 && self.response.Role.length !== self.response.Backup.length) {
+      this.toasterService.pop('warning', 'Warning!', 'Make sure all the Backup & Roles are linked to each other!');
+      return;
+    }
+
     tableData['Location'] = self.response.Location['Name'];
     tableData['Supervisors'] = self.response.Supervisors['Name'];
     tableData['Head'] = self.response.Head['Name'];
     tableData['Name'] = self.response.Person['Name'];
     tableData['Status'] = 'New';
-
     tableData['LocationId'] = self.response.Location['Id'];
     tableData['SupervisorsId'] = self.response.Supervisors['Id'];
     tableData['HeadId'] = self.response.Supervisors['Id'];
@@ -213,29 +238,42 @@ export class CslDropdownsComponent implements OnInit {
             return roleX;
           }
         });
-
         if (roleObj.length > 0) {
-          o['RoleName'] = roleObj.map(x => x.RoleName).join(', ');
-          let roleIdObj = _.map(roleObj, x => x.RoleId);
-          roleIdObj = _.compact(roleIdObj);
-          if (roleIdObj.length > 0) {
-            const backupObjs = _.filter(self.response.Backup, x => {
-              if (_.includes(roleIdObj, x.RoleId)) {
-                  return x;
-              }
-             });
-             o['Backup'] = (backupObjs.length > 0) ?
-              backupObjs.map(x => x.Name).join(', ') : 'NA' ;
-            } else {
-              o['Backup'] = 'NA';
+          // assign role id to [rolename]
+          // assign this rolenames backup to [backup]
+          _.each(roleObj, x => {
+             const backO = _.find(self.response.Backup, x1 => x1.RoleId === x.RoleId);
+             const o1 = _.cloneDeep(o);
+             o1['RoleName'] = x.RoleName;
+             o1['RoleId'] = x.RoleId;
+             o1['Backup'] = backO['Name'];
+             o1['BackupId'] = backO['PersonId'];
+             o1['Status'] = backO['Status'];
+             if (!(_.find(self.tableContent, o1))) {
+              duplicateFlag = false;
+              self.tableContent.push(o1);
             }
+          });
+          // o['RoleName'] = roleObj.map(x => x.RoleName).join(', ');
+          // let roleIdObj = _.map(roleObj, x => x.RoleId);
+          // roleIdObj = _.compact(roleIdObj);
+          // if (roleIdObj.length > 0) {
+          //   const backupObjs = _.filter(self.response.Backup, x => {
+          //     if (_.includes(roleIdObj, x.RoleId)) {
+          //         return x;
+          //     }
+          //    });
+          //    o['Backup'] = (backupObjs.length > 0) ?
+          //     backupObjs.map(x => x.Name).join(', ') : 'NA' ;
+          //   } else {
+          //     o['Backup'] = 'NA';
+          //   }
           } else {
           o['Backup'] = 'NA';
-        }
-
-        if (!(_.find(self.tableContent, o))) {
-          duplicateFlag = false;
-          self.tableContent.push(o);
+          if (!(_.find(self.tableContent, o))) {
+            duplicateFlag = false;
+            self.tableContent.push(o);
+          }
         }
       });
     }
@@ -259,6 +297,7 @@ export class CslDropdownsComponent implements OnInit {
             if (backupTemp) {
               o['Backup'] = backupTemp['Name'];
               o['BackupId'] = backupTemp['PersonId'];
+              o['Status'] = backupTemp['Status'];
             } else {
               o['Backup'] = 'NA';
               o['BackupId'] = null;
@@ -282,7 +321,26 @@ export class CslDropdownsComponent implements OnInit {
       }
     }
 
+    if (self.deletedBackupObj.length > 0) {
+      _.each(self.deletedBackupObj, obj => {
+      const o = _.cloneDeep(tableData);
+      const objRole = _.find(self.response.Role, x => x.RoleId === obj.RoleId);
+      const objJob = _.find(self.response.Job, x => x.JobId === objRole.JobId);
+      if (objJob) {
+      o['JobName'] =  objJob['JobName'];
+      } else {
+        o['JobName'] =  'NA';
+      }
+      o['Status'] = 'Deleted';
+      o['RoleName'] = objRole['RoleName'];
+      o['Backup'] = obj['Name'];
+      self.tableContent.push(o);
+      self.deletedBackupObj = [];
+    });
+    }
     if (!duplicateFlag) {
+      self.selectedSingleRole = [];
+      // self.selectedSingleRoleName = {};
       this.clearData();
       this.csvTableComponent.addRow();
     } else {
@@ -384,6 +442,7 @@ export class CslDropdownsComponent implements OnInit {
         break;
       case 'Backup':
         if ($event === '') {
+          self.response.Backup = _.uniq(self.response.Backup);
           self.backup = self.response.Backup;
           return;
         }
@@ -446,6 +505,11 @@ export class CslDropdownsComponent implements OnInit {
             self.selectedJobs = obj[0]['Jobs'].slice();
           }
           if (obj[0].hasOwnProperty('Roles')) {
+            _.each(obj[0]['Roles'], x => {
+              if (x['PersonId'] === null) {
+                x['DisabledField'] = 'true';
+              }
+            });
             self.response.Role = obj[0]['Roles'].slice();
             self.roles = obj[0]['Roles'].slice();
             self.selectedRoles = obj[0]['Roles'].slice();
@@ -486,8 +550,9 @@ export class CslDropdownsComponent implements OnInit {
   getBackupByRoles() {
     const self = this;
     self.loading = true;
-   // const item = _.last(self.response.Role);
-    _.each(self.response.Role, item => {
+    // const item = _.last(self.response.Role);
+    const item = _.find(self.response.Role, x => x.RoleName === self.selectedSingleRole[0]);
+    // _.each(self.response.Role, item => {
     const requestObject = {
       'RoleId': item['RoleId'],
       'RoleName': item['RoleName'],
@@ -497,21 +562,34 @@ export class CslDropdownsComponent implements OnInit {
 
     self.cslService.getCSLData('GetBackupsByRole', requestObject)
       .subscribe(obj => {
-        let temp = self.selectedBackups;
-        _.forEach(obj['Backups'], function (o) {
-          o['DisabledField'] = 'true';
-          o['RoleId'] = item['RoleId'];
-          temp.push(o);
-        });
+        if (obj['Backups'].length > 0) {
+        let temp = self.response.Backup;
+          // obj['Backups'][0]['DisabledField'] = 'true';
+          obj['Backups'][0]['RoleId'] = item['RoleId'];
+          obj['Backups'][0]['Status'] = 'No Change';
+          temp.push(obj['Backups'][0]);
+        // _.forEach(obj['Backups'], function (o) {
+        //   o['DisabledField'] = 'true';
+        //   o['RoleId'] = item['RoleId'];
+        //   temp.push(o);
+        // });
         temp = _.uniq(temp);
-        self.backup = temp.slice();
+        self.backup = [];
+        self.backup[0] = obj['Backups'][0];
         self.response.Backup = temp.slice();
-        self.selectedBackups = temp.slice();
-        self.loading = false;
+        self.selectedBackups = [];
+        self.selectedBackups[0] = obj['Backups'][0];
+      } else {
+        self.selectedBackups = [];
+        self.backup = [];
+        self.toasterService.pop('warning', '', 'No Backup available for ' + item['RoleName']);
+      }
+      self.loading = false;
       }, err => {
         self.loading = false;
       });
-    });
+    // });
+    self.dismissModal();
   }
 
   onCheckboxSelect(item, category) {
@@ -555,16 +633,29 @@ export class CslDropdownsComponent implements OnInit {
 
       case 'Role':
         temp = _.find(self.roles, x => x.RoleName === item);
+        if (!temp.hasOwnProperty('Status')) {
         temp['Status'] = 'New';
+        }
         self.response.Role.push(temp);
-        self.getBackupByRoles();
+        self.response.Role = _.uniq(self.response.Role);
         break;
 
       case 'Backup':
         temp = _.find(self.backup, x => x.Name === item);
-        const lstRole = _.last(self.response.Role);
-        temp['RoleId'] = lstRole.RoleId;
+        const tempRoleObj = _.find(self.roles, x => x.RoleName === self.selectedSingleRoleName);
+        temp['RoleId'] = tempRoleObj['RoleId'];
+        temp['Status'] = 'New';
+        const currentDeleted = _.find(self.response.Backup, x => x.RoleId === tempRoleObj.RoleId);
+        if (currentDeleted) {
+        self.deletedBackupObj.push(currentDeleted);
+        }
+        self.response.Backup = _.filter(self.response.Backup, x => x.RoleId !== tempRoleObj.RoleId);
         self.response.Backup.push(temp);
+        self.response.Backup = _.uniq(self.response.Backup);
+        break;
+
+        case 'MapRoleToBackup':
+        self.selectedSingleRoleName = item;
         break;
     }
   }
@@ -596,15 +687,18 @@ export class CslDropdownsComponent implements OnInit {
       self.persons = [];
     } else if (category === 'Head') {
       self.response.Head = {};
-      // self.response.Person = {};
-      // self.response.Job = [];
-      // self.response.Role = [];
-      // self.response.Backup = [];
-      // self.selectedJobs = [];
-      // self.selectedRoles = [];
-      // self.selectedBackups = [];
+      self.response.Person = {};
+      self.response.Job = [];
+      self.response.Role = [];
+      self.response.Backup = [];
+      self.selectedJobs = [];
+      self.selectedRoles = [];
+      self.selectedBackups = [];
       self.selectedHead = [];
-      // self.selectedPersons = [];
+      self.selectedPersons = [];
+      self.job = [];
+      self.backup = [];
+      self.roles = [];
       // self.persons = [];
     } else if (category === 'Person') {
       self.response.Person = {};
@@ -614,6 +708,9 @@ export class CslDropdownsComponent implements OnInit {
       self.selectedJobs = [];
       self.selectedRoles = [];
       self.selectedBackups = [];
+      self.job = [];
+      self.backup = [];
+      self.roles = [];
     } else if (category === 'Job') {
       if (_.isEmpty(item)) {
         self.response.Job = [];
@@ -640,6 +737,23 @@ export class CslDropdownsComponent implements OnInit {
           _.each(self.job, x => {
             if (x['JobName'] === item) {
               x['Status'] = 'Deleted';
+
+
+              self.response.Role = _.filter(self.response.Role, x1 => {
+                if (x1.JobId !== temp.JobId) {
+                  return x1;
+                }
+              });
+              self.roles = _.filter(self.response.Role, x1 => {
+                if (x1.JobId !== temp.JobId) {
+                  return x1;
+                }
+              });
+              self.selectedRoles = _.filter(self.response.Role, x1 => {
+                if (x1.JobId !== temp.JobId) {
+                  return x1;
+                }
+              });
             }
           });
         }
@@ -676,6 +790,25 @@ export class CslDropdownsComponent implements OnInit {
               x['Status'] = 'Deleted';
             }
           });
+
+          self.response.Backup = _.filter(self.response.Backup, x => {
+            if (x.RoleId !== temp.RoleId) {
+              return x;
+            }
+          });
+
+          self.backup = _.filter(self.response.Backup, x => {
+            if (x.RoleId !== temp.RoleId) {
+              return x;
+            }
+          });
+
+          self.selectedBackups = _.filter(self.response.Backup, x => {
+            if (x.RoleId !== temp.RoleId) {
+              return x;
+            }
+          });
+
         }
       }
 
@@ -686,6 +819,8 @@ export class CslDropdownsComponent implements OnInit {
         temp = _.find(self.backup, x => x.Name === item);
         _.pull(self.response.Backup, temp);
       }
+    } else if (category === 'MapRoleToBackup' ) {
+      self.selectedSingleRole = [];
     }
   }
 
@@ -696,5 +831,13 @@ export class CslDropdownsComponent implements OnInit {
   openModal(template: TemplateRef<any>) {
     this.modalRef = this.modalService.show(template);
   }
+
+  openModalForRole(template: TemplateRef<any>) {
+    const self = this;
+     self.selectRoleArray = self.response.Role.slice();
+     _.each(self.selectRoleArray, x => x['DisabledField'] = 'false');
+    this.modalRef = this.modalService.show(template);
+  }
+
 
 } // end of component

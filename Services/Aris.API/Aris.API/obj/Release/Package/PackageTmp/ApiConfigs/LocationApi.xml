@@ -12,4 +12,7 @@
   <attributeFilters>
     <attrfilter>8de0d080-4df4-11e8-3e7a-0296de82851c +</attrfilter>
   </attributeFilters>
+  <pagesizes>
+    <pagesize>500</pagesize>
+  </pagesizes>
 </root>
