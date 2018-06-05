@@ -140,7 +140,7 @@
               </ng-multiselect-dropdown>
             </div>
     </div>
-    <button type="button" class="btn btn-success" (click)="getBackupByRoles()">Show or Assign Backup</button>
+    <button type="button" class="btn btn-success" [disabled]="selectedSingleRole.length === 0" (click)="getBackupByRoles()">Show or Assign Backup</button>
     <button type="button" class="btn btn-default" (click)="dismissModal()">Cancel</button>
   </div>
 </ng-template>

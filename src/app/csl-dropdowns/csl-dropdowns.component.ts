@@ -210,7 +210,6 @@ export class CslDropdownsComponent implements OnInit {
     const tableData = {};
     self.response.Role = _.uniq(self.response.Role);
     self.response.Backup = _.uniq(self.response.Backup);
-    debugger;
     if (self.response.Role.length > 0 && self.response.Role.length !== self.response.Backup.length) {
       this.toasterService.pop('warning', 'Warning!', 'Make sure all the Backup & Roles are linked to each other!');
       return;
@@ -343,6 +342,12 @@ export class CslDropdownsComponent implements OnInit {
       // self.selectedSingleRoleName = {};
       this.clearData();
       this.csvTableComponent.addRow();
+    } else if (_.isEmpty(self.response.Person) ||
+    _.isEmpty(self.response.Location) ||
+    _.isEmpty(self.response.Head) ||
+    (_.isEmpty(self.response.Job.length === 0) && _.isEmpty(self.response.Role.length === 0) && _.isEmpty(self.response.Backup.length === 0)
+  )) {
+      this.toasterService.pop('error', 'Warning!', 'Please enter valid data...!');
     } else {
       this.toasterService.pop('error', 'Warning!', 'Can not add duplicate record!');
     }
@@ -401,7 +406,8 @@ export class CslDropdownsComponent implements OnInit {
         self.loading = true;
         requestObj = {
           'JobName': $event,
-          'token': localStorage.getItem('token')
+          'token': localStorage.getItem('token'),
+          'SelectedJobIds': _.map(self.response.Job, x => x.JobId)
         };
 
         self.cslService.getCSLData('GetAllJobs', requestObj)
@@ -429,7 +435,8 @@ export class CslDropdownsComponent implements OnInit {
         self.loading = true;
         requestObj = {
           'RoleName': $event,
-          'token': localStorage.getItem('token')
+          'token': localStorage.getItem('token'),
+          'SelectedRoleIds': _.map(self.roles, x => x.RoleId)
         };
 
         self.cslService.getCSLData('GetAllRoles', requestObj)
@@ -449,7 +456,8 @@ export class CslDropdownsComponent implements OnInit {
         self.loading = true;
         requestObj = {
           'BackupName': $event,
-          'token': localStorage.getItem('token')
+          'token': localStorage.getItem('token'),
+          'SelectedBackupIds': _.map(self.response.Backup, x => x.PersonId)
         };
 
         self.cslService.getCSLData('GetAllBackups', requestObj)
@@ -549,6 +557,9 @@ export class CslDropdownsComponent implements OnInit {
 
   getBackupByRoles() {
     const self = this;
+    if (self.selectedSingleRole.length === 0) {
+        return false;
+    }
     self.loading = true;
     // const item = _.last(self.response.Role);
     const item = _.find(self.response.Role, x => x.RoleName === self.selectedSingleRole[0]);
