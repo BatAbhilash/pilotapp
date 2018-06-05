@@ -7,7 +7,7 @@
 
         <div class="form-group">
           <div>
-            <ng-multiselect-dropdown name="selectedItems" id="selectedItems" [placeholder]="'Select a location'" [data]="location" [(ngModel)]="selectedLocation" [disabled]="loading"
+            <ng-multiselect-dropdown name="selectedItems" id="selectedItems" [placeholder]="'Select a Location'" [data]="location" [(ngModel)]="selectedLocation" [disabled]="loading"
               [settings]="dropdownLocationSettings" (onSelect)="onCheckboxSelect($event,'Location')" (onDeSelect)="onDeselct($event,'Location')">
             </ng-multiselect-dropdown>
           </div>
