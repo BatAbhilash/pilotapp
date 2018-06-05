@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+
 namespace Aris.API.Models
 {
   public class TokenModel
@@ -31,5 +33,11 @@ namespace Aris.API.Models
     public string BackupName { get; set; }
 
     public string Color { get; set; }
+
+    public List<string> SelectedJobIds { get; set; }
+
+    public List<string> SelectedRoleIds { get; set; }
+
+    public List<string> SelectedBackupIds { get; set; }
   }
 }

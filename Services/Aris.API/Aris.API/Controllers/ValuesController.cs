@@ -266,12 +266,28 @@ namespace Aris.API.Controllers
       var token = model.Token;
       var jobName = model.JobName;
       var rootObject = new List<Job>();
+
+      var jobs = new List<string>();
+      if (model.SelectedJobIds != null)
+      {
+        jobs = model.SelectedJobIds;
+      }
+      
       if (string.IsNullOrWhiteSpace(token))
         return rootObject;
 
       rootObject = GetAllJobs(token, jobName);
 
-      return rootObject;
+      var filteredData = new List<Job>();
+      foreach (var item in rootObject)
+      {
+        if (!jobs.Any(i => i.ToString() == item.JobId))
+        {
+          filteredData.Add(item);
+        }
+      }
+
+      return filteredData.OrderBy(i => i.JobName).ToList();
     }
 
     [HttpPost]
@@ -284,9 +300,24 @@ namespace Aris.API.Controllers
       if (string.IsNullOrWhiteSpace(token))
         return rootObject;
 
+      var roles = new List<string>();
+      if (model.SelectedRoleIds != null)
+      {
+        roles = model.SelectedRoleIds;
+      }
+
       rootObject = GetAllRoles(token, roleName);
 
-      return rootObject;
+      var filteredData = new List<Role>();
+      foreach (var item in rootObject)
+      {
+        if (!roles.Any(i => i.ToString().Trim().ToLower() == item.RoleId.Trim().ToLower()))
+        {
+          filteredData.Add(item);
+        }
+      }
+
+      return filteredData.OrderBy(i => i.RoleName).ToList();
     }
 
     [HttpPost]
@@ -299,9 +330,24 @@ namespace Aris.API.Controllers
       if (string.IsNullOrWhiteSpace(token))
         return rootObject;
 
+      var backups = new List<string>();
+      if (model.SelectedBackupIds != null)
+      {
+        backups = model.SelectedBackupIds;
+      }
+
       rootObject = GetAllBackups(token, backupNameFilter);
 
-      return rootObject;
+      var filteredData = new List<Person>();
+      foreach (var item in rootObject)
+      {
+        if (!backups.Any(i => i.ToString() == item.PersonId))
+        {
+          filteredData.Add(item);
+        }
+      }
+
+      return rootObject.OrderBy(i => i.Name).ToList();
     }
 
     [HttpPost]
@@ -769,9 +815,8 @@ namespace Aris.API.Controllers
           persons.Add(person);
         }
       } while (!string.IsNullOrEmpty(nextPageToken));
-
-
-      return persons.Distinct().ToList();
+      
+      return persons.OrderBy(i => i.Name).Distinct().ToList();
     }
 
     List<Role> GetAllRoles(string token, string filterText)
@@ -791,7 +836,7 @@ namespace Aris.API.Controllers
         nextPageToken = data.next_pagetoken;
         foreach (var item in data.items)
         {
-          var color = GetKnownColor();
+          var color = "white";// GetKnownColor();
           var guid = item.guid;
 
           foreach (var attribute in item.attributes)
@@ -804,7 +849,7 @@ namespace Aris.API.Controllers
       } while (!string.IsNullOrEmpty(nextPageToken));
 
 
-      return roles;
+      return roles.OrderBy(i => i.RoleName).ToList();
     }
 
     List<Job> GetAllJobs(string token, string filterText)
