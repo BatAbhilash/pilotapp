@@ -227,7 +227,8 @@ namespace Aris.API.Controllers
             jobList.Add(jobToAdd);
 
             var rolesByJob = GetRolesByJob(token, jobToAdd.Color, jobToAdd.JobId);
-            foreach (var jobRelatedRole in rolesByJob.JobRoles)
+            var sortedJobRoles = rolesByJob.JobRoles.OrderBy(i => i.RoleName).ToList();
+            foreach (var jobRelatedRole in sortedJobRoles)
             {
               // role id,job id, person id
               //if (person.JobRelatedRoles == null)
