@@ -211,10 +211,31 @@ export class CslDropdownsComponent implements OnInit {
     self.response.Role = _.uniq(self.response.Role);
     self.response.Backup = _.uniq(self.response.Backup);
 	// debugger;
-     if (self.response.Role.length > 0 && self.response.Role.length !== self.response.Backup.length) {
-       this.toasterService.pop('warning', 'Warning!', 'Make sure all the Backup & Roles are linked to each other!');
-       return;
-     }
+	
+	// loop though all roles
+	// foreach role id in roles, check its backup
+	// if no backup, break, show warning
+	
+     // if (self.response.Role.length > 0 && self.response.Role.length !== self.response.Backup.length) {
+       // this.toasterService.pop('warning', 'Warning!', 'Make sure all the Backup & Roles are linked to each other!');
+       // return;
+     // }
+	 debugger;
+	 let inValid = false;
+	 _.each(self.response.Role, x => {
+		     
+             const backO = _.find(self.response.Backup, x1 => x1.RoleId === x.RoleId);
+             if(!backO && x.Status != 'Deleted'){				 
+			     inValid = true;
+                 return false;		
+			 }	
+          });
+		  
+		  if(inValid)
+		  {
+			  this.toasterService.pop('warning', 'Warning!', 'Make sure all the Backup & Roles are linked to each other!');
+              return;
+		  }
 
     tableData['Location'] = self.response.Location['Name'];
     tableData['Supervisors'] = self.response.Supervisors['Name'];
@@ -342,9 +363,10 @@ export class CslDropdownsComponent implements OnInit {
     }
     if (!duplicateFlag) {
       self.selectedSingleRole = [];
-      // self.selectedSingleRoleName = {};
+      // self.selectedSingleRoleName = {};	  
       this.clearData();
-      this.csvTableComponent.addRow();
+	  self.tableContent = self.tableContent.slice();
+      this.csvTableComponent.addRowWithParam(self.tableContent);
     } else if (_.isEmpty(self.response.Person) ||
     _.isEmpty(self.response.Location) ||
     _.isEmpty(self.response.Head) ||
@@ -439,7 +461,7 @@ export class CslDropdownsComponent implements OnInit {
         requestObj = {
           'RoleName': $event,
           'token': localStorage.getItem('token'),
-          'SelectedRoleIds': _.map(self.roles, x => x.RoleId)
+          'SelectedRoleIds': _.map(self.response.Role, x => x.RoleId)
         };
 
         self.cslService.getCSLData('GetAllRoles', requestObj)
@@ -786,18 +808,20 @@ export class CslDropdownsComponent implements OnInit {
               return x;
             }
           });
+			self.backup = [];
+			self.selectedBackups = [];
+          // self.backup = _.filter(self.response.Backup, x => {
+            // if (x.RoleId !== temp.RoleId) {
+              // return x;
+            // }
+          // });
 
-          self.backup = _.filter(self.response.Backup, x => {
-            if (x.RoleId !== temp.RoleId) {
-              return x;
-            }
-          });
-
-          self.selectedBackups = _.filter(self.response.Backup, x => {
-            if (x.RoleId !== temp.RoleId) {
-              return x;
-            }
-          });
+          // self.selectedBackups = _.filter(self.response.Backup, x => {
+            // if (x.RoleId !== temp.RoleId) {
+              // return x;
+            // }
+            // }
+          // });
         } else {
           _.each(self.roles, x => {
             if (x['RoleName'] === item) {
@@ -810,18 +834,19 @@ export class CslDropdownsComponent implements OnInit {
               return x;
             }
           });
+          self.backup = [];
+			self.selectedBackups = [];
+          // self.backup = _.filter(self.response.Backup, x => {
+            // if (x.RoleId !== temp.RoleId) {
+              // return x;
+            // }
+          // });
 
-          self.backup = _.filter(self.response.Backup, x => {
-            if (x.RoleId !== temp.RoleId) {
-              return x;
-            }
-          });
-
-          self.selectedBackups = _.filter(self.response.Backup, x => {
-            if (x.RoleId !== temp.RoleId) {
-              return x;
-            }
-          });
+          // self.selectedBackups = _.filter(self.response.Backup, x => {
+            // if (x.RoleId !== temp.RoleId) {
+              // return x;
+            // }
+          // });
 
         }
       }
