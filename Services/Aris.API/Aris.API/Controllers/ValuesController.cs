@@ -463,7 +463,7 @@ namespace Aris.API.Controllers
           // remove last ]
           updateData = updateData.Remove(updateData.Length - 1);
 
-          var createUrl = ApiHelper.UrlBuilder(ApiTypeEnum.CreateData);
+          var createUrl = UrlBuilder(ApiTypeEnum.CreateData);
 
           using (var stringContent = new StringContent(updateData, Encoding.UTF8, "application/json"))
           {
