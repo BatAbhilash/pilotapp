@@ -210,10 +210,11 @@ export class CslDropdownsComponent implements OnInit {
     const tableData = {};
     self.response.Role = _.uniq(self.response.Role);
     self.response.Backup = _.uniq(self.response.Backup);
-    if (self.response.Role.length > 0 && self.response.Role.length !== self.response.Backup.length) {
-      this.toasterService.pop('warning', 'Warning!', 'Make sure all the Backup & Roles are linked to each other!');
-      return;
-    }
+	// debugger;
+     if (self.response.Role.length > 0 && self.response.Role.length !== self.response.Backup.length) {
+       this.toasterService.pop('warning', 'Warning!', 'Make sure all the Backup & Roles are linked to each other!');
+       return;
+     }
 
     tableData['Location'] = self.response.Location['Name'];
     tableData['Supervisors'] = self.response.Supervisors['Name'];
@@ -332,7 +333,9 @@ export class CslDropdownsComponent implements OnInit {
       }
       o['Status'] = 'Deleted';
       o['RoleName'] = objRole['RoleName'];
+	  o['RoleId'] = objRole['RoleId'];
       o['Backup'] = obj['Name'];
+	  o['BackupId'] = obj['PersonId'];
       self.tableContent.push(o);
       self.deletedBackupObj = [];
     });

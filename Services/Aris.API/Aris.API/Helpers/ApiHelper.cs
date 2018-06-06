@@ -129,7 +129,7 @@ namespace Aris.API.Helpers
       }
       else if (apiTypeEnum == ApiTypeEnum.CreateData)
       {
-        url = BaseUrl + "/models" + DatabaseName + ModelId + "/layoutonopen=true";
+        url = BaseUrl + "models" + DatabaseName + ModelId + "?layoutonopen=true";
       }
       else if (apiTypeEnum == ApiTypeEnum.ModelConnection)
       {

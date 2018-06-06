@@ -393,6 +393,100 @@ namespace Aris.API.Controllers
       var createdItems = mappingData.Where(i => i.Status == "New").ToList();
       var deletedItems = mappingData.Where(i => i.Status == "Deleted").ToList();
 
+      #region Delete data from ARIS
+      // call the occ id connection api if there is any data in deleted items
+      if (deletedItems != null && deletedItems.Count > 0)
+      {
+        // get connection id from the database for this database and model guid
+        var modelConnectionUrl = ApiHelper.UrlBuilder(ApiTypeEnum.ModelConnection);
+        var responseJson = GetRawResponse(token, modelConnectionUrl);
+        var data = JsonConvert.DeserializeObject<OccsRootObject>(responseJson);
+        //var parsed = JObject.Parse(responseJson);
+        //var modelConnectionsJson = parsed["items"]["modelconnections"];
+
+        var modelConnections = new List<OccurenceConnection>();
+        foreach (var item in data.items)
+        {
+          foreach (var mc in item.modelconnections)
+          {
+            modelConnections.Add(new OccurenceConnection
+            {
+              kind = mc.kind,
+              occid = mc.occid,
+              //type =        mc.type,
+              typename = mc.typename,
+              apiname = mc.apiname,
+              target_guid = mc.target_guid,
+              source_guid = mc.source_guid,
+              //source_link = mc.source_link,
+              //target_link = mc.target_link,
+              source_occid = mc.source_occid,
+              target_occid = mc.target_occid
+            });
+          }
+        }
+
+        // loop through the deleted items
+        foreach (var deletedItem in deletedItems)
+        {
+          var personGuid = deletedItem.PersonId;
+          // person to job will be deleted here
+          if (!string.IsNullOrEmpty(deletedItem.JobId))
+          {
+            var jobGuid = deletedItem.JobId;
+            var occId = modelConnections.Where(i => string.Equals(i.source_guid, personGuid, StringComparison.InvariantCultureIgnoreCase)
+                                              && string.Equals(i.target_guid, jobGuid, StringComparison.InvariantCultureIgnoreCase))
+                                              .Select(i => i.occid).FirstOrDefault();
+            var encodedOccId = HttpUtility.UrlEncode(occId);
+            if (!string.IsNullOrEmpty(occId))
+            {
+              var jobDeleteurl = ApiHelper.UrlBuilder(ApiTypeEnum.DeleteData, encodedOccId);
+              var response = GetRawResponse(token, jobDeleteurl, HttpTypeEnum.Delete);
+            }
+          }
+
+          // person to role model will be deleted here
+          if (!string.IsNullOrEmpty(deletedItem.RoleId) && string.IsNullOrEmpty(deletedItem.BackupId))
+          {
+            var roleGuid = deletedItem.RoleId;
+            var occId = modelConnections.Where(i => string.Equals(i.source_guid, personGuid, StringComparison.InvariantCultureIgnoreCase)
+                                              && string.Equals(i.target_guid, roleGuid, StringComparison.InvariantCultureIgnoreCase))
+                                              .Select(i => i.occid).FirstOrDefault();
+
+            var encodedOccId = HttpUtility.UrlEncode(occId);
+
+            if (!string.IsNullOrEmpty(occId))
+            {
+              var roleDeleteUrl = ApiHelper.UrlBuilder(ApiTypeEnum.DeleteData, encodedOccId);
+
+              var response = GetRawResponse(token, roleDeleteUrl, HttpTypeEnum.Delete);
+
+            }
+          }
+
+          // role to backup will be deleted here
+          if (!string.IsNullOrEmpty(deletedItem.BackupId))
+          {
+            var roleGuid = deletedItem.RoleId;
+            var backupId = deletedItem.BackupId;
+            var occId = modelConnections.Where(i => string.Equals(i.source_guid, roleGuid, StringComparison.InvariantCultureIgnoreCase)
+                                              && string.Equals(i.target_guid, backupId, StringComparison.InvariantCultureIgnoreCase))
+                                              .Select(i => i.occid).FirstOrDefault();
+
+            var encodedOccId = HttpUtility.UrlEncode(occId);
+
+            if (!string.IsNullOrEmpty(occId))
+            {
+              var roleDeleteUrl = ApiHelper.UrlBuilder(ApiTypeEnum.DeleteData, encodedOccId);
+
+              var response = GetRawResponse(token, roleDeleteUrl, HttpTypeEnum.Delete);
+
+            }
+          }
+        }
+      }
+      #endregion
+
       foreach (var createdItem in createdItems)
       {
         // model object for the person
@@ -473,7 +567,7 @@ namespace Aris.API.Controllers
         }
 
         // person to role model will be created here
-        if (!string.IsNullOrEmpty(createdItem.RoleId))
+        if (!string.IsNullOrEmpty(createdItem.RoleId) && string.IsNullOrEmpty(createdItem.BackupId))
         {
           var createConnections = new List<CreateConnection>();
           // model for job will be created
@@ -579,101 +673,14 @@ namespace Aris.API.Controllers
           // remove last ]
           updateData = updateData.Remove(updateData.Length - 1);
 
-          var createUrl = ApiHelper.UrlBuilder(ApiTypeEnum.CreateData);
+          var createUrl = UrlBuilder(ApiTypeEnum.CreateData);
 
           using (var stringContent = new StringContent(updateData, Encoding.UTF8, "application/json"))
           {
             var response = GetRawResponse(token, createUrl, HttpTypeEnum.Put, stringContent);
           }
         }
-
-        //var updateData = JsonConvert.SerializeObject(createConnections);
-        //// remove first [
-        //updateData = updateData.Substring(1);
-        //// remove last ]
-        //updateData = updateData.Remove(updateData.Length - 1);
-
-        //var createUrl = ApiHelper.UrlBuilder(ApiTypeEnum.CreateData);
-
-        //using (var stringContent = new StringContent(updateData, Encoding.UTF8, "application/json"))
-        //{
-        //  var response = GetRawResponse(token, createUrl, HttpTypeEnum.Put, stringContent);
-        //}
-      }
-
-
-      #region Delete data from ARIS
-      // call the occ id connection api if there is any data in deleted items
-      if (deletedItems != null && deletedItems.Count > 0)
-      {
-        // get connection id from the database for this database and model guid
-        var modelConnectionUrl = ApiHelper.UrlBuilder(ApiTypeEnum.ModelConnection);
-        var responseJson = GetRawResponse(token, modelConnectionUrl);
-        var data = JsonConvert.DeserializeObject<OccsRootObject>(responseJson);
-        //var parsed = JObject.Parse(responseJson);
-        //var modelConnectionsJson = parsed["items"]["modelconnections"];
-
-        var modelConnections = new List<OccurenceConnection>();
-        foreach (var item in data.items)
-        {
-          foreach (var mc in item.modelconnections)
-          {
-            modelConnections.Add(new OccurenceConnection
-            {
-              kind = mc.kind,
-              occid = mc.occid,
-              //type =        mc.type,
-              typename = mc.typename,
-              apiname = mc.apiname,
-              target_guid = mc.target_guid,
-              source_guid = mc.source_guid,
-              //source_link = mc.source_link,
-              //target_link = mc.target_link,
-              source_occid = mc.source_occid,
-              target_occid = mc.target_occid
-            });
-          }
-        }
-
-        // loop through the deleted items
-        foreach (var deletedItem in deletedItems)
-        {
-          var personGuid = deletedItem.PersonId;
-          if (!string.IsNullOrEmpty(deletedItem.JobId))
-          {
-            var jobGuid = deletedItem.JobId;
-            var occId = modelConnections.Where(i => string.Equals(i.source_guid, personGuid, StringComparison.InvariantCultureIgnoreCase)
-                                              && string.Equals(i.target_guid, jobGuid, StringComparison.InvariantCultureIgnoreCase))
-                                              .Select(i => i.occid).FirstOrDefault();
-            var encodedOccId = HttpUtility.UrlEncode(occId);
-            if (!string.IsNullOrEmpty(occId))
-            {
-              var jobDeleteurl = ApiHelper.UrlBuilder(ApiTypeEnum.DeleteData, encodedOccId);
-              var response = GetRawResponse(token, jobDeleteurl, HttpTypeEnum.Delete);
-            }
-          }
-
-          // person to role model will be created here
-          if (!string.IsNullOrEmpty(deletedItem.RoleId))
-          {
-            var roleGuid = deletedItem.RoleId;
-            var occId = modelConnections.Where(i => string.Equals(i.source_guid, personGuid, StringComparison.InvariantCultureIgnoreCase)
-                                              && string.Equals(i.target_guid, roleGuid, StringComparison.InvariantCultureIgnoreCase))
-                                              .Select(i => i.occid).FirstOrDefault();
-
-            var encodedOccId = HttpUtility.UrlEncode(occId);
-
-            if (!string.IsNullOrEmpty(occId))
-            {
-              var roleDeleteUrl = ApiHelper.UrlBuilder(ApiTypeEnum.DeleteData, encodedOccId);
-
-              var response = GetRawResponse(token, roleDeleteUrl, HttpTypeEnum.Delete);
-
-            }
-          }
-        }
-      }
-      #endregion
+      }      
     }
 
     static string GetKnownColor()
@@ -955,6 +962,8 @@ namespace Aris.API.Controllers
           }
         }
       }
+
+      rootObject.JobRoles = rootObject.JobRoles.OrderBy(i => i.RoleName).ToList();
 
       return rootObject;
     }
