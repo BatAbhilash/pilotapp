@@ -366,7 +366,7 @@ export class CslDropdownsComponent implements OnInit {
       // self.selectedSingleRoleName = {};	  
       this.clearData();
 	  self.tableContent = self.tableContent.slice();
-      this.csvTableComponent.addRow();
+      this.csvTableComponent.addRowWithParam(self.tableContent);
     } else if (_.isEmpty(self.response.Person) ||
     _.isEmpty(self.response.Location) ||
     _.isEmpty(self.response.Head) ||

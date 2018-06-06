@@ -134,6 +134,14 @@ export class CsvTableComponent implements OnInit {
     this.source = new LocalDataSource(this.tableContent);
     this.source.refresh();
   }
+  
+  addRowWithParam(tableData) {
+	this.tableContent.push(tableData);
+    console.log(tableData);
+    this.toasterService.pop('success', 'Success!', 'Record Added Successfully!');
+    this.source = new LocalDataSource(tableData);
+    this.source.refresh();
+  }
 
   submitData() {
     const self = this;
