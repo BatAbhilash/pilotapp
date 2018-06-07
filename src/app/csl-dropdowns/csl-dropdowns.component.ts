@@ -316,9 +316,10 @@ export class CslDropdownsComponent implements OnInit {
               }
             });
             if (backupTemp) {
+				debugger;
               o['Backup'] = backupTemp['Name'];
               o['BackupId'] = backupTemp['PersonId'];
-              o['Status'] = backupTemp['Status'];
+              o['Status'] = obj.Status === 'New' ? 'New' : backupTemp['Status'];
             } else {
               o['Backup'] = 'NA';
               o['BackupId'] = null;
@@ -668,10 +669,11 @@ export class CslDropdownsComponent implements OnInit {
         break;
 
       case 'Role':
+	    debugger;
         temp = _.find(self.roles, x => x.RoleName === item);
-        if (!temp.hasOwnProperty('Status')) {
+        //if (!temp.hasOwnProperty('Status')) {
         temp['Status'] = 'New';
-        }
+        //}
         self.response.Role.push(temp);
         self.response.Role = _.uniq(self.response.Role);
         break;
