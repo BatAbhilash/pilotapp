@@ -220,22 +220,22 @@ export class CslDropdownsComponent implements OnInit {
        // this.toasterService.pop('warning', 'Warning!', 'Make sure all the Backup & Roles are linked to each other!');
        // return;
      // }
-	 debugger;
-	 let inValid = false;
-	 _.each(self.response.Role, x => {
+	 // debugger;
+	 // let inValid = false;
+	 // _.each(self.response.Role, x => {
 		     
-             const backO = _.find(self.response.Backup, x1 => x1.RoleId === x.RoleId);
-             if(!backO && x.Status != 'Deleted'){				 
-			     inValid = true;
-                 return false;		
-			 }	
-          });
+             // const backO = _.find(self.response.Backup, x1 => x1.RoleId === x.RoleId);
+             // if(!backO && x.Status != 'Deleted'){				 
+			     // inValid = true;
+                 // return false;		
+			 // }	
+          // });
 		  
-		  if(inValid)
-		  {
-			  this.toasterService.pop('warning', 'Warning!', 'Make sure all the Backup & Roles are linked to each other!');
-              return;
-		  }
+		  // if(inValid)
+		  // {
+			  // this.toasterService.pop('warning', 'Warning!', 'Make sure all the Backup & Roles are linked to each other!');
+              // return;
+		  // }
 
     tableData['Location'] = self.response.Location['Name'];
     tableData['Supervisors'] = self.response.Supervisors['Name'];
@@ -252,8 +252,8 @@ export class CslDropdownsComponent implements OnInit {
         o['JobName'] = obj.JobName;
         o['Status'] = obj.Status;
         o['JobId'] = obj.JobId;
-        o['RoleName'] = 'NA';
-        o['Backup'] = 'NA';
+        o['RoleName'] = 'N/A';
+        o['Backup'] = 'N/A';
         const roleObj = _.filter(self.response.Role, roleX => {
           if (roleX.JobId === obj.JobId) {
             return roleX;
@@ -285,12 +285,12 @@ export class CslDropdownsComponent implements OnInit {
           //     }
           //    });
           //    o['Backup'] = (backupObjs.length > 0) ?
-          //     backupObjs.map(x => x.Name).join(', ') : 'NA' ;
+          //     backupObjs.map(x => x.Name).join(', ') : 'N/A' ;
           //   } else {
-          //     o['Backup'] = 'NA';
+          //     o['Backup'] = 'N/A';
           //   }
           } else {
-          o['Backup'] = 'NA';
+          o['Backup'] = 'N/A';
           if (!(_.find(self.tableContent, o))) {
             duplicateFlag = false;
             self.tableContent.push(o);
@@ -305,7 +305,7 @@ export class CslDropdownsComponent implements OnInit {
           o['RoleName'] = obj.RoleName;
           o['Status'] = obj.Status;
           o['RoleId'] = obj.RoleId;
-          o['JobName'] = 'NA';
+          o['JobName'] = 'N/A';
           o['JobId'] = null;
           if (self.response.Backup.length > 0) {
             // o['Backup'] = self.response.Backup[0]['Name'];
@@ -321,12 +321,12 @@ export class CslDropdownsComponent implements OnInit {
               o['BackupId'] = backupTemp['PersonId'];
               o['Status'] = obj.Status === 'New' ? 'New' : backupTemp['Status'];
             } else {
-              o['Backup'] = 'NA';
+              o['Backup'] = 'N/A';
               o['BackupId'] = null;
             }
           } else {
-            o['Backup'] = 'NA';
-            o['BackupId'] = 'NA';
+            o['Backup'] = 'N/A';
+            o['BackupId'] = 'N/A';
           }
 
           if (!(_.find(self.tableContent, o))) {
@@ -335,7 +335,7 @@ export class CslDropdownsComponent implements OnInit {
           }
         }
       });
-      if (tableData['JobName'] !== 'NA' && tableData['RoleName'] !== 'NA') {
+      if (tableData['JobName'] !== 'N/A' && tableData['RoleName'] !== 'N/A') {
         if (!(_.find(self.tableContent, tableData))) {
           duplicateFlag = false;
           // self.tableContent.push(tableData);
@@ -351,7 +351,7 @@ export class CslDropdownsComponent implements OnInit {
       if (objJob) {
       o['JobName'] =  objJob['JobName'];
       } else {
-        o['JobName'] =  'NA';
+        o['JobName'] =  'N/A';
       }
       o['Status'] = 'Deleted';
       o['RoleName'] = objRole['RoleName'];
