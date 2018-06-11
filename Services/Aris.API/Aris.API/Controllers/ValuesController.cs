@@ -731,8 +731,8 @@ namespace Aris.API.Controllers
           foreach (var attribute in item.attributes)
           {
             switch (attribute.typename)
-            {
-              case "CSL Location Address - Country":
+            {       
+              case "CSL Work Address - City":
                 location_Name = attribute.value;
                 locationId = attribute.type_guid;
                 break;
