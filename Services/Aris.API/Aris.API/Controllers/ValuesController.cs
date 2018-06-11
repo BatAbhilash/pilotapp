@@ -732,7 +732,7 @@ namespace Aris.API.Controllers
           {
             switch (attribute.typename)
             {
-              case "CSL Location":
+              case "CSL Location Address - Country":
                 location_Name = attribute.value;
                 locationId = attribute.type_guid;
                 break;
